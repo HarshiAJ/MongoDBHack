@@ -62,6 +62,8 @@ carries a `source` block (system, file, sheet, row, run_id) for lineage.
 | `customer_prices` | SAP sales price condition | Cross-checked against contract Annex A piece prices |
 | `negotiations` | past or agent-initiated negotiation | Counterparty behaviour: the agent's long-term memory |
 | `plans` / `plan_lines` | plan version / month x customer x part | FY2027 budget; the agent adds latest-estimate versions |
+| `agent_cases`, `agent_actions` | case / approved action | Case status, report, forecast; drafts ready to send |
+| `contract_changes` | accepted agreement | Re-applied to contracts after every rebuild |
 | `ingestion_issues` | data quality finding | rule, severity, status (open / auto_fixed / resolved) |
 | `ingestion_runs` | pipeline run | File hashes, row counts in and loaded |
 
@@ -84,6 +86,33 @@ deterministic parse, not from the model. On the sample data: 181/181 quotes veri
 
 `hybrid_search()` merges the two with `$rankFusion` and applies the same filters to both.
 Try it with `python -m rmi.search "deadline to file a raw material surcharge claim"`.
+
+## The agent
+
+`rmi/engine/` does every calculation deterministically: contract price formulas, margins and
+surcharge recovery, opportunities with deadlines, and the FY2027 re-forecast vs budget.
+`rmi/agent/` is a LangGraph workflow on top, checkpointed in MongoDB (`agent_checkpoints`):
+
+```
+review    sense -> investigate -> propose -> [buyer approval] -> execute -> replan -> report
+response  interpret -> [buyer approval] -> apply -> replan -> report
+```
+
+- **sense**: margin watch and opportunity scan (supplier claims, decreases owed, meet-competition,
+  renewals, hardship, price review, price-down waiver, billing errors)
+- **investigate**: clause evidence via hybrid search, plus negotiation memory per counterparty
+- **propose**: the LLM drafts one action per finding using only the engine's figures
+- **approval**: `interrupt()`; the case waits in MongoDB and resumes from any process
+- **execute**: approved emails become drafts ready to send, and internal tasks are opened.
+  Nothing is sent automatically.
+- **response**: a counterparty reply is read into structured agreements, checked against the
+  formula, confirmed by the buyer, applied to the contract (`contract_changes`), and the plan is re-forecast
+
+```bash
+.venv/bin/python -m rmi.agent review                    # opens a case, pauses for approval
+.venv/bin/python -m rmi.agent approve CASE-...          # or: approve CASE-... 0 3 5
+.venv/bin/python -m rmi.agent respond V-100101 data/demo/alucast_reply_2026-09-29.txt
+```
 
 ## Sample data
 

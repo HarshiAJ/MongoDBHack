@@ -264,6 +264,9 @@ def build_contracts(db):
         c["terms_timeline"].sort(key=lambda t: t["effective_from"])
         c["current_terms"] = c["terms_timeline"][-1]["terms"]
         db.contracts.replace_one({"_id": c["_id"]}, c, upsert=True)
+    # agreements the agent recorded earlier live in contract_changes; put them back on the rebuilt contracts
+    from rmi.agent.changes import reapply_all
+    reapply_all(db)
     return contracts
 
 
