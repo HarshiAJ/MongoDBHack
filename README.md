@@ -59,6 +59,9 @@ carries a `source` block (system, file, sheet, row, run_id) for lineage.
 | `documents` | contract, amendment, email, note | Full text plus `sections[]` for search; `extraction.status` for LLM term extraction |
 | `contracts` | vendor or customer contract | Built by `python -m rmi.extract`: LLM-extracted terms, amendments applied as `terms_timeline`, `current_terms` |
 | `doc_chunks` | document section | Retrieval unit with filters (`kind`, `contract_id`, `party_ids`, `indices`); two search indexes |
+| `customer_prices` | SAP sales price condition | Cross-checked against contract Annex A piece prices |
+| `negotiations` | past or agent-initiated negotiation | Counterparty behaviour: the agent's long-term memory |
+| `plans` / `plan_lines` | plan version / month x customer x part | FY2027 budget; the agent adds latest-estimate versions |
 | `ingestion_issues` | data quality finding | rule, severity, status (open / auto_fixed / resolved) |
 | `ingestion_runs` | pipeline run | File hashes, row counts in and loaded |
 
@@ -96,7 +99,14 @@ Try it with `python -m rmi.search "deadline to file a raw material surcharge cla
 | SAP BW | Material/vendor master, PO history | `PEINH` price units, PLN, 10x typo, duplicate, missing vendor |
 | Excel inputs | Yield factors | Fraction vs percent |
 | RMI Tracker | Map, overrides, monthly sheet with formulas | Lost leading zeros, unapproved override, empty month |
-| Contracts | 8 vendor, 1 amendment, 3 customer PDFs, 1 email | Amendment supersedes clause, expiries, overcharge |
+| Contracts | 8 vendor, 1 amendment, 3 customer PDFs, 2 emails | Amendment supersedes clause, expiries, overcharge |
+| Commercial | SAP customer master and price conditions, standard costs, RFQ responses, negotiation log | SAP still bills a 2025 price |
+| Finance | FY2027 budget (assumptions, plan prices, monthly plan P&L) | Plan built on June 2026 prices |
+
+The commercial layer supports four purchasing scenarios: margin watch (contract prices vs.
+material cost), customer renegotiation (hardship, price review, waiver clauses), vendor
+renegotiation (meet-competition, rebates, renewals, RFQs) and re-planning against the budget.
+`scripts/check_extraction.py` checks the extracted contract data against ground truth.
 
 The expected findings are in [data/GROUND_TRUTH.md](data/GROUND_TRUTH.md).
 `data/reference/master_data.json` holds the clean master data, for evaluation only.

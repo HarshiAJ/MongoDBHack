@@ -11,7 +11,7 @@ from email.utils import parsedate_to_datetime
 
 from pypdf import PdfReader
 
-from rmi.ingest.common import CROSSWALK, RAW, Context, norm, rel
+from rmi.ingest.common import RAW, Context, norm, rel
 
 CONTRACT_ID = re.compile(r"\b((?:VC|CC)-\d{4}-\d{2,3}|CC-[A-Z]{2}-\d{4}-\d{2})(-A\d+)?\b")
 SECTION = re.compile(r"^(\d+\.\s+\S.*|Annex [A-Z]\..*)$")
@@ -19,10 +19,6 @@ PRODUCT = re.compile(r"([A-Z][A-Za-z0-9 -]+?) \((FG-[A-Z0-9-]+)\)")
 
 
 def load(ctx: Context):
-    for cid, c in CROSSWALK["customers"].items():
-        ctx.docs["parties"][cid] = {"_id": cid, "type": "customer", "name": c["name"], "country": c["country"],
-                                    "aliases": c["aliases"], "sources": []}
-
     for path in sorted((RAW / "contracts").rglob("*.pdf")):
         text = "\n".join(page.extract_text() for page in PdfReader(path).pages)
         kind = ("contract_amendment" if "amendment" in path.stem.lower()

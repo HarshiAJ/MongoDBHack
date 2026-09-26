@@ -49,6 +49,26 @@ class PriceAdjustment(BaseModel):
     fx_rule: str | None
 
 
+LeverType = Literal["hardship", "annual_price_review", "price_down_waiver", "extraordinary_review",
+                    "cost_reduction_sharing", "meet_competition", "volume_rebate", "renewal"]
+
+
+class Lever(BaseModel):
+    """A clause that opens room to renegotiate price, volume or terms."""
+    type: LeverType
+    section: str
+    threshold_pct: float | None = Field(description="Percentage threshold that activates the lever, if any")
+    notice_days: int | None = Field(description="Days of notice or response time stated in the clause")
+    deadline_rule: str | None = Field(description="Timing rule as written, e.g. '60 days before 1 January'")
+    effect: str = Field(description="What the lever allows, paraphrased in one sentence")
+
+
+class PiecePrice(BaseModel):
+    product_id: str
+    price_2025_eur: float | None
+    price_2026_eur: float | None
+
+
 class VendorContract(BaseModel):
     contract_id: str
     supplier_name: str
@@ -66,6 +86,10 @@ class VendorContract(BaseModel):
     termination_notice_days: int | None
     renewal_notice_days: int | None = Field(description="Days before expiry renewal talks must start")
     payment_terms: str | None
+    levers: list[Lever] = Field(description=(
+        "Renegotiation levers from dedicated clauses: competitiveness/meet-competition, volume rebate, renewal "
+        "offer or extension-pricing clauses. Do not list the generic renewal timing in the Term section; it "
+        "belongs in renewal_notice_days."))
     evidence: list[Evidence]
 
 
@@ -92,6 +116,8 @@ class CustomerContract(BaseModel):
     claim_deadline_days: int | None
     claim_deadline_reference: Literal["before_quarter_start", "after_quarter_end", "before_adjustment_date"] | None
     annual_price_down_pct: float | None
+    piece_prices: list[PiecePrice] = Field(description="Annex A piece prices per part")
+    levers: list[Lever] = Field(description="Hardship, price review, waiver, extraordinary review, cost sharing")
     evidence: list[Evidence]
 
 
@@ -111,6 +137,7 @@ class Amendment(BaseModel):
 
 
 class SupplierNotice(BaseModel):
+    notice_type: Literal["price_adjustment", "renewal_offer"]
     contract_id: str
     supplier_name: str
     material_id: str
@@ -118,6 +145,8 @@ class SupplierNotice(BaseModel):
     currency: str
     unit: Literal["kg", "t"]
     effective_date: str
+    offer_valid_until: str | None = Field(description="YYYY-MM-DD if the notice is an offer with a deadline")
+    volume_t: float | None
     claimed_basis: str = Field(description="The supplier's stated justification, paraphrased briefly")
     evidence: list[Evidence]
 
@@ -136,7 +165,9 @@ Rules:
 - Dates as YYYY-MM-DD.
 - Map materials and products to the canonical ids provided; use only those ids.
 - For every extracted numeric or date field give one evidence item whose quote is copied verbatim
-  from the document (keep the original wording and punctuation)."""
+  from the document (keep the original wording and punctuation).
+- For values from a table, quote the table row as it appears (e.g. the part number, description and
+  prices of that row), never a column header joined to a cell."""
 
 
 def catalog(db) -> str:
@@ -200,7 +231,10 @@ def build_contracts(db):
             "product_ids": r.get("product_ids", []),
             "signed": d(r["signed"]),
             "expires": d(r["expires"]),
-            "summary": {k: v for k, v in r.items() if k not in ("price_adjustment", "surcharges", "contract_id")},
+            "summary": {k: v for k, v in r.items()
+                        if k not in ("price_adjustment", "surcharges", "contract_id", "levers", "piece_prices")},
+            "levers": r.get("levers", []),
+            "piece_prices": r.get("piece_prices", []),
             "terms_timeline": [{"effective_from": d(r["signed"]), "terms": terms, "document_id": doc["_id"]}],
             "amendments": [],
             "documents": [doc["_id"]],
@@ -245,6 +279,7 @@ def build_notices(db):
     for doc in db.documents.find({"kind": "supplier_email", "extraction.status": {"$ne": "pending"}}):
         r = doc["extraction"]["result"]
         per_kg = r["new_price"] / (1000 if r["unit"] == "t" else 1)
+        eur = per_kg if r["currency"] == "EUR" else None
         contract = db.contracts.find_one({"_id": doc["refs"]["contract_id"]})
         db.price_quotes.replace_one({"kind": "supplier_notice", "document_id": doc["_id"]}, {
             "kind": "supplier_notice",
@@ -252,14 +287,44 @@ def build_notices(db):
             "contract_id": doc["refs"]["contract_id"],
             "vendor_id": contract["party_id"] if contract else None,
             "material_id": r["material_id"],
-            "price": {"per_kg": per_kg, "currency": r["currency"],
-                      "per_kg_eur": per_kg if r["currency"] == "EUR" else None},
+            "price": {"per_kg": per_kg, "currency": r["currency"], "per_kg_eur": eur},
             "valid_from": d(r["effective_date"]),
             "received_at": doc.get("email", {}).get("sent_at"),
             "claimed_basis": r["claimed_basis"],
-            "status": "claimed",  # the agent verifies it against the contract formula
+            "notice_type": r["notice_type"],
+            "offer_valid_until": d(r["offer_valid_until"]),
+            "volume_t": r["volume_t"],
+            # a price-adjustment claim is verified against the contract formula; a renewal offer is negotiated
+            "status": "claimed" if r["notice_type"] == "price_adjustment" else "offer",
             "source": doc["source"],
         }, upsert=True)
+
+
+def cross_check_customer_prices(db, as_of=datetime(2026, 9, 26, tzinfo=timezone.utc)):
+    """Compare the SAP price condition in force today with the contract's Annex A price."""
+    run_id = f"extract-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}"
+    db.ingestion_issues.delete_many({"rule": "contract_price_mismatch"})
+    found = 0
+    for c in db.contracts.find({"type": "customer"}):
+        for pp in c.get("piece_prices", []):
+            contract_price = pp["price_2026_eur"]
+            sap = db.customer_prices.find_one(
+                {"customer_id": c["party_id"], "product_id": pp["product_id"],
+                 "valid_from": {"$lte": as_of.replace(tzinfo=None)}, "valid_to": {"$gte": as_of.replace(tzinfo=None)}},
+                sort=[("valid_from", -1)])
+            if not sap or contract_price is None or abs(sap["price_eur"] - contract_price) < 0.005:
+                continue
+            found += 1
+            db.ingestion_issues.insert_one({
+                "run_id": run_id, "source": {k: v for k, v in sap["source"].items() if k != "run_id"},
+                "rule": "contract_price_mismatch", "severity": "error", "status": "open",
+                "message": f"{c['party_id']} / {pp['product_id']}: SAP bills {sap['price_eur']:.2f} EUR but contract "
+                           f"{c['_id']} Annex A price from 2026-01-01 is {contract_price:.2f} EUR "
+                           f"({sap['price_eur'] - contract_price:+.2f} EUR/pc)",
+                "entity": {"customer_id": c["party_id"], "product_id": pp["product_id"], "contract_id": c["_id"]},
+                "detected_at": datetime.now(timezone.utc),
+            })
+    return found
 
 
 def main(all_docs=False):
@@ -276,6 +341,7 @@ def main(all_docs=False):
         print(f"{doc['_id']:<34} {ex['status']:<13} {len(ex['evidence'])} evidence{flag}")
     contracts = build_contracts(db)
     build_notices(db)
+    print(f"{cross_check_customer_prices(db)} SAP price conditions disagree with contract piece prices.")
     print(f"\n{len(contracts)} contracts assembled; "
           f"{sum(len(c['amendments']) for c in contracts.values())} amendments applied.")
 

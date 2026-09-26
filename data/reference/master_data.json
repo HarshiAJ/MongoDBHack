@@ -551,5 +551,145 @@
       "excluded": "all other raw materials are fixed; copper exposure is borne by the supplier",
       "notice": "Adjustment requests require 45 days written notice before the adjustment date."
     }
-  ]
+  ],
+  "piece_prices": [
+    {
+      "customer": "C-NORDWERK",
+      "product": "FG-BC-200",
+      "2025": 19.36,
+      "2026": 18.97,
+      "2027": 18.59
+    },
+    {
+      "customer": "C-NORDWERK",
+      "product": "FG-SF-310",
+      "2025": 23.55,
+      "2026": 23.08,
+      "2027": 22.62
+    },
+    {
+      "customer": "C-NORDWERK",
+      "product": "FG-RD-120",
+      "2025": 46.46,
+      "2026": 45.53,
+      "2027": 44.62
+    },
+    {
+      "customer": "C-BRIGHTLINE",
+      "product": "FG-WH-EV1",
+      "2025": 71.87,
+      "2026": 70.43,
+      "2027": 69.02
+    },
+    {
+      "customer": "C-BRIGHTLINE",
+      "product": "FG-BE-500",
+      "2025": 142.03,
+      "2026": 139.19,
+      "2027": 136.41
+    },
+    {
+      "customer": "C-BRIGHTLINE",
+      "product": "FG-BC-200",
+      "2025": 19.14,
+      "2026": 18.76,
+      "2027": 18.38
+    },
+    {
+      "customer": "C-SAKURA",
+      "product": "FG-BE-500",
+      "2025": 137.3,
+      "2026": 134.55,
+      "2027": 131.86
+    },
+    {
+      "customer": "C-SAKURA",
+      "product": "FG-WH-EV1",
+      "2025": 69.5,
+      "2026": 68.11,
+      "2027": 66.75
+    }
+  ],
+  "conversion_cost": {
+    "FG-BC-200": {
+      "labour": 3.8,
+      "machine": 3.1,
+      "overhead": 1.9,
+      "logistics": 0.7
+    },
+    "FG-WH-EV1": {
+      "labour": 12.4,
+      "machine": 3.6,
+      "overhead": 4.2,
+      "logistics": 1.8
+    },
+    "FG-SF-310": {
+      "labour": 4.9,
+      "machine": 4.4,
+      "overhead": 2.6,
+      "logistics": 1.1
+    },
+    "FG-BE-500": {
+      "labour": 11.5,
+      "machine": 12.8,
+      "overhead": 6.9,
+      "logistics": 2.8
+    },
+    "FG-RD-120": {
+      "labour": 6.1,
+      "machine": 6.2,
+      "overhead": 3.6,
+      "logistics": 1.6
+    }
+  },
+  "vendor_levers": {
+    "VC-2025-014": [
+      "Competitiveness",
+      "If Buyer presents a written offer from a qualified supplier for comparable material and volume that is more than 5% below the then-current contract price, Supplier shall either match the offer within 30 days of receipt or Buyer may reallocate up to 30% of the annual volume to that supplier without penalty."
+    ],
+    "VC-2025-026": [
+      "Competitiveness",
+      "If Buyer presents a written offer from a qualified supplier that is more than 3% below the then-current contract price, Supplier shall match the offer within 30 days or Buyer may reallocate up to 20% of the annual volume. A supplier is qualified once its PPAP is approved."
+    ],
+    "VC-2024-031": [
+      "Volume rebate",
+      "If Buyer's purchases exceed 2,800 t in a contract year, Supplier grants a retroactive rebate of 1.5% on the invoiced value of that contract year, payable within 60 days of year end."
+    ],
+    "VC-2025-022": [
+      "Renewal",
+      "Prices for any extension shall be agreed in writing no later than 60 days before expiry. Absent agreement, the Agreement expires and no further deliveries are owed."
+    ],
+    "VC-2024-040": [
+      "Renewal",
+      "Supplier shall submit a written renewal offer no later than 90 days before expiry. Buyer is free to award the following period to another supplier."
+    ]
+  },
+  "customer_levers": {
+    "CC-NW-2025-01": [
+      [
+        "Hardship",
+        "If the cost of raw materials that are not covered by Section 3 increases by more than 7.5% against the quotation basis in Annex B, either party may request renegotiation of the affected piece prices in writing, supported by index evidence and a cost breakdown. The parties shall conclude the negotiation within 30 days of the request."
+      ]
+    ],
+    "CC-BL-2024-07": [
+      [
+        "Annual price review",
+        "Either party may request a review of piece prices for the following calendar year by written notice received at least 60 days before 1 January. The review shall consider documented changes in raw material costs not covered by Section 3."
+      ],
+      [
+        "Price-down waiver",
+        "The productivity price-down in Section 5 may be waived for a calendar year by mutual agreement if Supplier documents raw material cost increases above 5% on the part."
+      ]
+    ],
+    "CC-SK-2025-03": [
+      [
+        "Extraordinary review",
+        "If the cap in Section 3 limits the adjustment in two consecutive adjustment periods, Supplier may request an extraordinary price review with 30 days notice."
+      ],
+      [
+        "Cost reduction sharing",
+        "Savings from design or process changes proposed by Supplier and approved by Customer are shared 50/50 through a piece price reduction."
+      ]
+    ]
+  }
 }

@@ -302,6 +302,343 @@ CUSTOMER_CONTRACTS = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Commercial layer: selling prices, cost structure, renegotiation levers,
+# competing quotes, negotiation history and the approved FY2027 budget.
+# Uses its own RNG so the operational data above stays reproducible.
+# ---------------------------------------------------------------------------
+
+crng = random.Random(SEED + 1)
+YIELDS = {}          # (plant, material) -> yield %, filled by write_excel_inputs
+PIECE_PRICES = {}    # (customer, product) -> {2025, 2026, 2027}, filled by compute_piece_prices
+FX_PLAN = 1.08
+
+# Latest sales forecast vs the June budget: EV demand at Brightline has softened
+FORECAST_SHIFT = {"C-NORDWERK": 1.05, "C-BRIGHTLINE": 0.85, "C-SAKURA": 1.0}
+
+# Conversion cost per piece in EUR (Controlling, standard cost 2026)
+CONVERSION = {
+    "FG-BC-200": {"labour": 3.80, "machine": 3.10, "overhead": 1.90, "logistics": 0.70},
+    "FG-WH-EV1": {"labour": 12.40, "machine": 3.60, "overhead": 4.20, "logistics": 1.80},
+    "FG-SF-310": {"labour": 4.90, "machine": 4.40, "overhead": 2.60, "logistics": 1.10},
+    "FG-BE-500": {"labour": 11.50, "machine": 12.80, "overhead": 6.90, "logistics": 2.80},
+    "FG-RD-120": {"labour": 6.10, "machine": 6.20, "overhead": 3.60, "logistics": 1.60},
+}
+TARGET_MARGIN = {"FG-BC-200": 12, "FG-WH-EV1": 10, "FG-SF-310": 12, "FG-BE-500": 11, "FG-RD-120": 12}
+# Contribution margin at quotation (2025 prices, 2024-12 index basis)
+QUOTED_MARGIN = {
+    ("C-NORDWERK", "FG-BC-200"): 0.15, ("C-NORDWERK", "FG-SF-310"): 0.14, ("C-NORDWERK", "FG-RD-120"): 0.15,
+    ("C-BRIGHTLINE", "FG-WH-EV1"): 0.12, ("C-BRIGHTLINE", "FG-BE-500"): 0.13, ("C-BRIGHTLINE", "FG-BC-200"): 0.14,
+    ("C-SAKURA", "FG-BE-500"): 0.10, ("C-SAKURA", "FG-WH-EV1"): 0.09,
+}
+# A380 is dual-sourced
+SOURCING_SPLIT = {"RM-AL-A380": {"VC-2025-014": 0.75, "VC-2025-022": 0.25}}
+KUNNR = {"C-NORDWERK": "0000200101", "C-BRIGHTLINE": "0000200102", "C-SAKURA": "0000200103"}
+
+VENDOR_LEVERS = {
+    "VC-2025-014": ("Competitiveness",
+                    "If Buyer presents a written offer from a qualified supplier for comparable material and volume "
+                    "that is more than 5% below the then-current contract price, Supplier shall either match the "
+                    "offer within 30 days of receipt or Buyer may reallocate up to 30% of the annual volume to that "
+                    "supplier without penalty."),
+    "VC-2025-026": ("Competitiveness",
+                    "If Buyer presents a written offer from a qualified supplier that is more than 3% below the "
+                    "then-current contract price, Supplier shall match the offer within 30 days or Buyer may "
+                    "reallocate up to 20% of the annual volume. A supplier is qualified once its PPAP is approved."),
+    "VC-2024-031": ("Volume rebate",
+                    "If Buyer's purchases exceed 2,800 t in a contract year, Supplier grants a retroactive rebate of "
+                    "1.5% on the invoiced value of that contract year, payable within 60 days of year end."),
+    "VC-2025-022": ("Renewal",
+                    "Prices for any extension shall be agreed in writing no later than 60 days before expiry. "
+                    "Absent agreement, the Agreement expires and no further deliveries are owed."),
+    "VC-2024-040": ("Renewal",
+                    "Supplier shall submit a written renewal offer no later than 90 days before expiry. Buyer is "
+                    "free to award the following period to another supplier."),
+}
+
+CUSTOMER_LEVERS = {
+    "CC-NW-2025-01": [
+        ("Hardship", "If the cost of raw materials that are not covered by Section 3 increases by more than 7.5% "
+                     "against the quotation basis in Annex B, either party may request renegotiation of the affected "
+                     "piece prices in writing, supported by index evidence and a cost breakdown. The parties shall "
+                     "conclude the negotiation within 30 days of the request."),
+    ],
+    "CC-BL-2024-07": [
+        ("Annual price review", "Either party may request a review of piece prices for the following calendar year "
+                                "by written notice received at least 60 days before 1 January. The review shall "
+                                "consider documented changes in raw material costs not covered by Section 3."),
+        ("Price-down waiver", "The productivity price-down in Section 5 may be waived for a calendar year by mutual "
+                              "agreement if Supplier documents raw material cost increases above 5% on the part."),
+    ],
+    "CC-SK-2025-03": [
+        ("Extraordinary review", "If the cap in Section 3 limits the adjustment in two consecutive adjustment "
+                                 "periods, Supplier may request an extraordinary price review with 30 days notice."),
+        ("Cost reduction sharing", "Savings from design or process changes proposed by Supplier and approved by "
+                                   "Customer are shared 50/50 through a piece price reduction."),
+    ],
+}
+
+
+def material_price_eur(mcode, index_values, fx=FX_PLAN):
+    """Contract price in EUR/kg for a material given index levels (blended if dual-sourced)."""
+    split = SOURCING_SPLIT.get(mcode) or {
+        next(c["id"] for c in VENDOR_CONTRACTS if mcode in c["material"].split(",")): 1.0}
+    total = 0.0
+    for cid, share in split.items():
+        c = next(x for x in VENDOR_CONTRACTS if x["id"] == cid)
+        base = c["base_price"]
+        if c["price_unit"].startswith("EUR/t"):
+            base = base / 1000 + (0.095 if mcode == "RM-ST-CRC" else 0)
+        price = base
+        if c["index"]:
+            ref = c["base_index_value"]
+            change = (index_values[c["index"]] - ref) / ref
+            if abs(change) * 100 > c["trigger_pct"]:
+                adj = change * c["share"]
+                if c["cap_pct"]:
+                    adj = max(-c["cap_pct"] / 100, min(c["cap_pct"] / 100, adj))
+                price = base * (1 + adj)
+        total += share * (price / fx if c["currency"] == "USD" else price)
+    return total
+
+
+def bom_kg(product):
+    """Exploded kg per piece for a finished good, from the clean BOM."""
+    out = {}
+    def walk(node, factor):
+        for parent, child, qty, uom, _ in BOM:
+            if parent != node:
+                continue
+            if uom == "EA":
+                walk(child, factor * qty)
+            else:
+                out[child] = out.get(child, 0) + factor * qty
+    walk(product, 1)
+    return out
+
+
+def avg_yield(mcode):
+    vals = [y for (plant, m), y in YIELDS.items() if m == mcode]
+    return sum(vals) / len(vals) / 100
+
+
+def material_cost(product, index_values):
+    return sum(kg / avg_yield(m) * material_price_eur(m, index_values) for m, kg in bom_kg(product).items())
+
+
+def base_index_values():
+    return {k: v[0] for k, v in INDEX_SPEC.items()}
+
+
+def compute_piece_prices():
+    base = base_index_values()
+    for (cust, prod), margin in QUOTED_MARGIN.items():
+        cost = material_cost(prod, base) + sum(CONVERSION[prod].values())
+        p2025 = round(cost / (1 - margin), 2)
+        PIECE_PRICES[(cust, prod)] = {2025: p2025, 2026: round(p2025 * 0.98, 2), 2027: round(p2025 * 0.98 ** 2, 2)}
+
+
+def write_customer_master_and_conditions():
+    out = RAW / "sap_bw"
+    rows = [(KUNNR[k], c["name"], c["country"], "EUR") for k, c in CUSTOMERS.items()]
+    write_csv(out / "0CUSTOMER_master.csv", ["KUNNR", "NAME1", "LAND1", "WAERS"], rows, delimiter=";")
+
+    # Sales price conditions (PR00): KBETR per KPEIN pieces
+    rows = []
+    for (cust, prod), prices in PIECE_PRICES.items():
+        stale = (cust, prod) == ("C-BRIGHTLINE", "FG-WH-EV1")
+        rows.append([KUNNR[cust], prod, "PR00", f"{prices[2025] * 100:.2f}", "100", "EUR",
+                     "20250101", "99991231" if stale else "20251231"])
+        if not stale:  # injected: 2026 price-down never keyed in SAP for this part
+            rows.append([KUNNR[cust], prod, "PR00", f"{prices[2026] * 100:.2f}", "100", "EUR",
+                         "20260101", "99991231"])
+    write_csv(out / "A305_sales_price_conditions.csv",
+              ["KUNNR", "MATNR", "KSCHL", "KBETR", "KPEIN", "KONWA", "DATAB", "DATBI"], rows, delimiter=";")
+    p = PIECE_PRICES[("C-BRIGHTLINE", "FG-WH-EV1")]
+    return [f"sap_bw: Brightline FG-WH-EV1 still billed at the 2025 price {p[2025]:.2f} EUR in SAP; contract "
+            f"Annex A price from 2026-01-01 is {p[2026]:.2f} EUR (overbilling since January, customer credit risk)"]
+
+
+def write_product_costs():
+    out = RAW / "excel_inputs"
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Standard cost 2026"
+    ws.append(["Part", "Labour", "Machine", "Overhead", "Logistics", "Conversion total", "Target margin %",
+               "Owner", "Valid from"])
+    for i, (prod, c) in enumerate(CONVERSION.items(), start=2):
+        ws.append([prod, c["labour"], c["machine"], c["overhead"], c["logistics"], f"=SUM(B{i}:E{i})",
+                   TARGET_MARGIN[prod], "Controlling", "2026-01-01"])
+    bold_header(ws)
+    wb.save(out / "product_cost_structure_2026.xlsx")
+
+
+def write_rfq_responses():
+    out = RAW / "purchasing"
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "RFQ responses"
+    ws.append(["RFQ", "Material", "Supplier", "Offer", "Unit", "Pricing basis", "Annual volume (t)",
+               "Qualification", "Offer valid until", "Buyer", "Comment"])
+    ws.append(["RFQ-2026-031", "AL A380", "Iberal Foundry S.A.", 2.66, "EUR/kg",
+               "Index-linked: ALU, reference 2,350 USD/t (2024-12), monthly, trigger 5%, 100% share", 400,
+               "PPAP approved 2026-08-12", "2026-11-30", "J. Weber", "Can supply Wolfsried from Jan 2027"])
+    ws.append(["RFQ-2026-031", "Alu A380", "Great Lakes Alloys Inc.", 3.35, "USD/kg",
+               "Fixed 12 months", 300, "Not qualified", "2026-10-31", "S. Patel", "Greenville only"])
+    ws.append(["RFQ-2026-034", "PA66 GF30", "Hanse Polymers GmbH", 3.72, "EUR/kg",
+               "Fixed 12 months from 2027-01-01", 380, "Samples in validation, PPAP expected 2027-01",
+               "2026-12-15", "J. Weber", "Needs colour-matching trial"])
+    ws.append(["RFQ-2026-036", "SMR20", "Pacific Latex Sdn. Bhd.", 2.05, "USD/kg",
+               "Fixed calendar year 2027", 60, "Approved supplier since 2024", "2026-10-20", "S. Patel",
+               "Min. order 20 t per call-off"])
+    bold_header(ws)
+    wb.save(out / "rfq_responses_2026-09.xlsx")
+
+
+def write_negotiation_log():
+    out = RAW / "purchasing"
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Negotiation log"
+    ws.append(["Date", "Counterparty", "Contract", "Topic", "Our ask", "Outcome", "Lessons", "Owner"])
+    rows = [
+        ("2025-06-03", "Nordwerk Fahrzeugbau AG", "CC-NW-2025-01", "Copper cost increase on RD-120",
+         "+2.5% piece price", "Accepted +1.8% after 3 weeks",
+         "Nordwerk needs LME evidence plus a cost breakdown per part before they engage", "J. Weber"),
+        ("2025-11-14", "Brightline Motors Inc.", "CC-BL-2024-07", "PA66 increase on WH-EV1",
+         "+2.5% piece price", "Rejected: PA66 is excluded in section 3",
+         "Brightline only reopens prices through the annual price review; file it before the notice deadline",
+         "J. Weber"),
+        ("2025-12-05", "Keystone Rubber Co.", "VC-2024-040", "2026 price", "Hold 2.10 USD/kg",
+         "Held flat in exchange for a 12-month volume commitment",
+         "Keystone trades price for volume certainty", "S. Patel"),
+        ("2026-02-10", "AluCast Iberia S.L.", "VC-2025-014", "Price match with Midwest quote",
+         "Match competitor", "Temporary 3% discount for Q2 2026",
+         "AluCast reacts within two weeks when a written competing offer is on the table", "J. Weber"),
+        ("2026-04-22", "Sakura EV Corporation", "CC-SK-2025-03", "Early aluminium adjustment",
+         "Bring forward the October adjustment", "Rejected; offered a VAVE workshop instead",
+         "Sakura will not deviate from the semi-annual timing; cost-down proposals are welcome", "K. Brandt"),
+        ("2026-07-15", "Baltic Steel Works AS", "VC-2025-007", "Faster pass-through of falling HRC",
+         "Monthly review, lower trigger", "Amendment A1 signed: 3% trigger, monthly",
+         "Check each month that Baltic actually passes decreases through", "M. Kask"),
+    ]
+    for r in rows:
+        ws.append(list(r))
+    bold_header(ws)
+    wb.save(out / "negotiation_log.xlsx")
+
+
+def write_keystone_renewal_email():
+    path = RAW / "contracts" / "inbox" / "2026-09-18_Keystone_renewal_offer.eml"
+    path.write_text(
+        "From: sales@keystone-rubber.example\n"
+        "To: purchasing@veltra-automotive.example\n"
+        "Date: Fri, 18 Sep 2026 11:02:00 +0800\n"
+        "Subject: Renewal offer 2027 - SMR20 natural rubber - contract VC-2024-040\n"
+        "\n"
+        "Dear Mr Patel,\n\n"
+        "As agreement VC-2024-040 expires on 31 December 2026, please find our renewal offer for 2027:\n\n"
+        "- Material: natural rubber SMR20\n"
+        "- Price: 2.45 USD/kg, fixed for calendar year 2027\n"
+        "- Volume: 60 t\n"
+        "- Payment: 60 days end of month\n\n"
+        "The increase reflects higher latex costs and freight. This offer is valid until 15 October 2026.\n\n"
+        "Best regards,\nLim Wei Ling\nKeystone Rubber Co.\n"
+    )
+
+
+def fy_months():
+    months = [date(2026, 10, 1)]
+    for _ in range(11):
+        m = months[-1]
+        months.append((m.replace(day=28) + timedelta(days=4)).replace(day=1))
+    return months
+
+
+def write_budget(idx):
+    """FY2027 (Oct 2026 - Sep 2027) budget approved on 2026-06-30 at June 2026 index averages."""
+    out = RAW / "finance"
+    out.mkdir(parents=True, exist_ok=True)
+    plan_idx = {k: month_avg(idx[k], 2026, 6) for k in ("ALU", "CU", "ZN", "HRC", "PA66", "RUBBER")}
+    fx = month_avg(idx["EURUSD"], 2026, 6)
+    seasonal = [1.0, 1.05, 0.8, 0.9, 1.0, 1.1, 1.05, 1.0, 1.0, 0.7, 0.85, 1.1]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Assumptions"
+    ws.append(["Item", "Plan value", "Unit", "Basis"])
+    for k, v in plan_idx.items():
+        ws.append([k, round(v, 4), INDEX_SPEC[k][2], "June 2026 average"])
+    ws.append(["EURUSD", round(fx, 4), "USD per EUR", "June 2026 average"])
+    ws.append(["Customer price-down", 2, "%", "Applied 1 Jan 2027 per contracts"])
+    bold_header(ws)
+
+    ws = wb.create_sheet("Material prices")
+    ws.append(["Material", "Plan price (EUR/kg)", "Basis"])
+    plan_prices = {}
+    for code in MAT:
+        plan_prices[code] = material_price_eur(code, plan_idx, fx)
+        ws.append([code, round(plan_prices[code], 4), "Vendor contract formula at plan index levels"])
+    bold_header(ws)
+
+    ws = wb.create_sheet("Plan")
+    ws.append(["Month", "Customer", "Part", "Units", "Piece price", "Revenue", "Material cost",
+               "Conversion cost", "Contribution", "Margin %"])
+    for cust, c in CUSTOMERS.items():
+        for prod, annual in c["products"].items():
+            mat_unit = sum(kg / avg_yield(m) * plan_prices[m] for m, kg in bom_kg(prod).items())
+            conv_unit = sum(CONVERSION[prod].values())
+            for m, s in zip(fy_months(), seasonal):
+                units = round(annual / 12 * s)
+                price = PIECE_PRICES[(cust, prod)][2027 if m.year == 2027 else 2026]
+                revenue, mat, conv = units * price, units * mat_unit, units * conv_unit
+                contrib = revenue - mat - conv
+                ws.append([m.strftime("%Y-%m"), c["name"], prod, units, price, round(revenue, 2), round(mat, 2),
+                           round(conv, 2), round(contrib, 2), round(contrib / revenue * 100, 2)])
+    bold_header(ws)
+
+    ws = wb.create_sheet("Approval")
+    ws.append(["Version", "Approved on", "Approved by", "Comment"])
+    ws.append(["FY2027 Budget v1.0", "2026-06-30", "CFO", "Material prices at June 2026 index averages"])
+    bold_header(ws)
+    wb.save(out / "budget_FY2027.xlsx")
+    return plan_idx
+
+
+def commercial_ground_truth(idx, plan_idx):
+    now = {k: month_avg(idx[k], 2026, 9) for k in plan_idx}
+    lines = ["", "## Commercial scenarios (for the agent)", ""]
+    lines.append("Contribution margin per piece at quotation vs. September 2026 index levels "
+                 "(material via vendor formulas, before customer surcharges):")
+    lines.append("")
+    lines.append("| Customer | Part | Price 2026 | Margin at plan | Margin at Sep 2026 index |")
+    lines.append("|---|---|---|---|---|")
+    for (cust, prod), prices in PIECE_PRICES.items():
+        conv = sum(CONVERSION[prod].values())
+        plan_m = 1 - (material_cost(prod, plan_idx) + conv) / prices[2026]
+        now_m = 1 - (material_cost(prod, now) + conv) / prices[2026]
+        lines.append(f"| {cust} | {prod} | {prices[2026]:.2f} | {plan_m:.1%} | {now_m:.1%} |")
+    lines += [
+        "",
+        "- Nordwerk: hardship clause at 7.5% for materials outside the surcharge (copper, PA66 on RD-120)",
+        "- Brightline: annual price review notice must be received by 2026-11-02 for 2027 prices",
+        "- Brightline: price-down waiver possible if raw material cost increase > 5% on the part",
+        "- Sakura: extraordinary review only after the 10% cap binds twice; VAVE 50/50 sharing",
+        "- AluCast: meet-competition at > 5%; Iberal Foundry RFQ 2.66 EUR/kg on the same index basis "
+        "(6.7% below AluCast's 2.85 base, PPAP approved) triggers it",
+        "- PolyNova: meet-competition at > 3%, but Hanse Polymers is not qualified until PPAP 2027-01",
+        "- Nordic: 1.5% volume rebate above 2,800 t per contract year",
+        "- Midwest: extension price must be agreed by 2026-11-01 or the contract lapses on 2026-12-31",
+        "- Keystone: renewal offer 2.45 USD/kg (+16.7%) vs qualified Pacific Latex RFQ 2.05 USD/kg; "
+        "offer valid until 2026-10-15",
+        "- Baltic: HRC below reference by more than the amended 3% trigger -> Veltra is owed a price decrease",
+        f"- Budget FY2027 uses June 2026 index averages: "
+        + ", ".join(f"{k} {v:,.2f}" for k, v in plan_idx.items()),
+        "- Latest sales forecast vs budget volumes: Brightline -15%, Nordwerk +5%, Sakura flat",
+    ]
+    return lines
+
+
 def pdf(path, title, blocks):
     path.parent.mkdir(parents=True, exist_ok=True)
     styles = getSampleStyleSheet()
@@ -369,6 +706,9 @@ def write_vendor_contracts():
             ("p", "Neither party is liable for delays caused by events beyond its reasonable control. "
                   "Market price movements do not constitute force majeure."),
         ]
+        if c["id"] in VENDOR_LEVERS:
+            heading, text = VENDOR_LEVERS[c["id"]]
+            blocks += [("h", f"7. {heading}"), ("p", text)]
         pdf(out / f"{c['id']}_{vname.split()[0]}.pdf", f"Supply Agreement {c['id']}", blocks)
 
         if "amendment" in c:
@@ -426,6 +766,16 @@ def write_customer_contracts():
             ("p", c["notice"]),
             ("h", "5. Annual price-down"),
             ("p", "Supplier grants a productivity price reduction of 2% on piece prices on each 1 January."),
+        ]
+        for n, (heading, text) in enumerate(CUSTOMER_LEVERS[c["id"]], start=6):
+            blocks += [("h", f"{n}. {heading}"), ("p", text)]
+        blocks += [
+            ("h", "Annex A. Piece prices"),
+            ("p", "Prices in EUR per piece, DAP Customer plant. The 2026 prices include the 1 January 2026 "
+                  "price-down. Quotation basis for raw materials: index reference values in Annex B."),
+            ("table", [["Part", "Description", "Price 2025 (EUR/pc)", "Price from 2026-01-01 (EUR/pc)"]] + [
+                [p, PRODUCTS[p], f"{PIECE_PRICES[(c['customer'], p)][2025]:.2f}",
+                 f"{PIECE_PRICES[(c['customer'], p)][2026]:.2f}"] for p in cust["products"]]),
         ]
         pdf(out / f"{c['id']}_{cust['name'].split()[0]}.pdf", f"Supply Agreement {c['id']}", blocks)
 
@@ -687,7 +1037,7 @@ def write_sales():
         c = CUSTOMERS[ckey]
         for p, annual in c["products"].items():
             for m, s in zip(months, seasonal):
-                qty = annual / 12 * s * rng.uniform(0.9, 1.1)
+                qty = annual / 12 * s * FORECAST_SHIFT[ckey] * rng.uniform(0.9, 1.1)
                 rows.append((m.strftime("%d.%m.%Y"), rng.choice(c["aliases"]), p, f"{qty:.1f}".replace(".", ",")))
     write_csv(out / "forecast_EU_plant_2026-10.csv", ["Monat", "Kunde", "Material", "Menge_Stk"], rows, delimiter=";")
 
@@ -700,7 +1050,7 @@ def write_sales():
     for p, annual in c["products"].items():
         for m, s in zip(months, seasonal):
             ws.append([m.strftime("%m/%d/%Y"), c["aliases"][0], p.replace("FG-", ""),
-                       round(annual / 12 * s * rng.uniform(0.9, 1.1))])
+                       round(annual / 12 * s * FORECAST_SHIFT["C-BRIGHTLINE"] * rng.uniform(0.9, 1.1))])
     ws.append(["10/01/2026", "Brightline Motors", "BE-500", None])  # injected: blank units
     bold_header(ws)
     wb.save(out / "forecast_US_plant_2026-10.xlsx")
@@ -762,6 +1112,7 @@ def write_excel_inputs():
     for plant in ("Wolfsried", "Greenville"):
         for code in MAT:
             y = round(rng.uniform(88, 98), 1)
+            YIELDS[(plant, code)] = y
             ws.append([plant, TRACKER_NAMES[code], y, "Controlling", "2026-03-31"])
     ws.append(["Greenville", "Alu A380 ingot", 0.93, "Controlling", "2026-06-30"])  # injected: fraction not %
     bold_header(ws)
@@ -779,9 +1130,16 @@ def main():
     issues += write_sales()
     issues += write_rmi_tracker()
     issues += write_excel_inputs()
+    compute_piece_prices()
     write_vendor_contracts()
     write_customer_contracts()
     write_vendor_notice_email(idx)
+    issues += write_customer_master_and_conditions()
+    write_product_costs()
+    write_rfq_responses()
+    write_negotiation_log()
+    write_keystone_renewal_email()
+    plan_idx = write_budget(idx)
     issues += [
         "market: LME copper missing 2026-03-17",
         "market: LME aluminium 2026-06-10 appears twice with conflicting values",
@@ -813,6 +1171,11 @@ def main():
                     for k, v in VENDORS.items()},
         "vendor_contracts": VENDOR_CONTRACTS,
         "customer_contracts": CUSTOMER_CONTRACTS,
+        "piece_prices": [{"customer": c, "product": p, **{str(y): v for y, v in pr.items()}}
+                         for (c, p), pr in PIECE_PRICES.items()],
+        "conversion_cost": CONVERSION,
+        "vendor_levers": VENDOR_LEVERS,
+        "customer_levers": CUSTOMER_LEVERS,
     }, indent=2))
 
     lines = ["# Ground truth: injected data-quality issues", "",
@@ -825,6 +1188,7 @@ def main():
               f"- CU Aug avg: {month_avg(idx['CU'], 2026, 8):,.0f}; Sep MTD: {month_avg(idx['CU'], 2026, 9):,.0f}",
               f"- PA66 Jul: {month_avg(idx['PA66'], 2026, 7):.3f}; Sep: {month_avg(idx['PA66'], 2026, 9):.3f} EUR/kg",
               f"- HRC Jun: {month_avg(idx['HRC'], 2026, 6):.0f}; Sep: {month_avg(idx['HRC'], 2026, 9):.0f} EUR/t"]
+    lines += commercial_ground_truth(idx, plan_idx)
     (ROOT / "GROUND_TRUTH.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 

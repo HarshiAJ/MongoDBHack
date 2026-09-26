@@ -13,7 +13,7 @@ from pymongo import InsertOne
 
 from rmi import search
 from rmi.db import get_db, reset_ingested
-from rmi.ingest import bom, documents, excel_inputs, market, purchasing, sales, sap, tracker
+from rmi.ingest import bom, commercial, documents, excel_inputs, finance, market, purchasing, sales, sap, tracker
 from rmi.ingest.common import Context
 
 AS_OF = datetime(2026, 9, 26, tzinfo=timezone.utc)  # the dataset's "today"
@@ -21,14 +21,17 @@ AS_OF = datetime(2026, 9, 26, tzinfo=timezone.utc)  # the dataset's "today"
 
 def run(dry_run=False) -> Context:
     ctx = Context(run_id=f"ingest-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}")
-    # Order matters: FX before prices, the tracker's crosswalk before SAP, BOM before sales.
+    # Order matters: FX before prices, the tracker's crosswalk before SAP, BOM before prices, costs and sales.
     market.load(ctx)
     tracker.load(ctx)
     sap.load(ctx)
     bom.load(ctx)
+    sap.load_price_conditions(ctx, AS_OF)
+    commercial.load(ctx)
     sales.load(ctx)
     purchasing.load(ctx, AS_OF)
     excel_inputs.load(ctx)
+    finance.load(ctx)
     documents.load(ctx)
 
     report(ctx)

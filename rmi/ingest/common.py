@@ -37,13 +37,15 @@ class Context:
     files: dict = field(default_factory=dict)  # rel path -> {sha256, system, rows_in, rows_loaded}
     docs: dict = field(default_factory=lambda: {
         "materials": {}, "parties": {}, "products": {}, "po_lines": [], "price_quotes": [],
-        "forecasts": [], "market_prices": [], "documents": [],
+        "forecasts": [], "market_prices": [], "documents": [], "customer_prices": [],
+        "negotiations": [], "plans": [], "plan_lines": [],
     })
     # lookups populated as sources load
     fx: dict = field(default_factory=dict)          # "EURUSD" -> (sorted dates, values)
     matnr_to_material: dict = field(default_factory=dict)
     material_alias: dict = field(default_factory=dict)  # norm(name) -> material_id
     vendor_by_lifnr: dict = field(default_factory=dict)
+    customer_by_kunnr: dict = field(default_factory=dict)
     customer_alias: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -104,13 +106,19 @@ class Context:
 
     def resolve_vendor(self, name) -> str | None:
         """Match a free-text supplier name to the SAP vendor master by prefix of the normalised name."""
+        return self._resolve_party(name, "vendor")
+
+    def _resolve_party(self, name, kind) -> str | None:
         key = norm(name)
         hits = [v["_id"] for v in self.docs["parties"].values()
-                if v["type"] == "vendor" and (norm(v["name"]).startswith(key) or key.startswith(norm(v["name"])))]
+                if v["type"] == kind and (norm(v["name"]).startswith(key) or key.startswith(norm(v["name"])))]
         return hits[0] if len(hits) == 1 else None
 
     def resolve_customer(self, name) -> str | None:
         return self.customer_alias.get(norm(name))
+
+    def resolve_party(self, name) -> str | None:
+        return self.resolve_customer(name) or self._resolve_party(name, "vendor")
 
     def fx_rate(self, pair: str, d: date) -> float:
         """Reference rate for the date, or the latest earlier business day."""
