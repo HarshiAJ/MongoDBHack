@@ -58,6 +58,7 @@ carries a `source` block (system, file, sheet, row, run_id) for lineage.
 | `index_monthly` | index x month | Monthly averages, the input to every price clause |
 | `documents` | contract, amendment, email, note | Full text plus `sections[]` for search; `extraction.status` for LLM term extraction |
 | `contracts` | vendor or customer contract | Built by `python -m rmi.extract`: LLM-extracted terms, amendments applied as `terms_timeline`, `current_terms` |
+| `doc_chunks` | document section | Retrieval unit with filters (`kind`, `contract_id`, `party_ids`, `indices`); two search indexes |
 | `ingestion_issues` | data quality finding | rule, severity, status (open / auto_fixed / resolved) |
 | `ingestion_runs` | pipeline run | File hashes, row counts in and loaded |
 
@@ -69,6 +70,17 @@ quote. Quotes are checked against the source text, and a document with an unveri
 quote is marked `needs_review` rather than trusted. Contract numbers come from the
 deterministic parse, not from the model. On the sample data: 181/181 quotes verified,
 0 mismatches against ground truth.
+
+### Search
+
+`rmi/search.py` builds two indexes on `doc_chunks` during ingestion:
+
+- `chunks_vector`: Vector Search with **automated embeddings** (`autoEmbed`, `voyage-4`).
+  Atlas generates and maintains the embeddings, so there is no embedding pipeline in this repo.
+- `chunks_text`: Atlas Search with the English analyzer and fuzzy matching.
+
+`hybrid_search()` merges the two with `$rankFusion` and applies the same filters to both.
+Try it with `python -m rmi.search "deadline to file a raw material surcharge claim"`.
 
 ## Sample data
 

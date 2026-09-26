@@ -25,7 +25,7 @@ def get_db() -> Database:
 # (actions, memory, checkpoints, identifier_mappings) are never dropped here.
 INGESTED = [
     "materials", "parties", "products", "po_lines", "price_quotes",
-    "forecasts", "market_prices", "index_monthly", "documents", "ingestion_issues",
+    "forecasts", "market_prices", "index_monthly", "documents", "doc_chunks", "ingestion_issues",
 ]
 
 SOURCE = {
@@ -104,4 +104,5 @@ def reset_ingested(db: Database) -> None:
     db.parties.create_index([("type", ASCENDING), ("sap_lifnr", ASCENDING)])
     db.products.create_index("materials.material_id")
     db.documents.create_index([("kind", ASCENDING), ("refs.contract_id", ASCENDING)])
+    db.doc_chunks.create_index("document_id")
     db.ingestion_issues.create_index([("status", ASCENDING), ("severity", ASCENDING), ("source", ASCENDING)])

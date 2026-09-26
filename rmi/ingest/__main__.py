@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from pymongo import InsertOne
 
+from rmi import search
 from rmi.db import get_db, reset_ingested
 from rmi.ingest import bom, documents, excel_inputs, market, purchasing, sales, sap, tracker
 from rmi.ingest.common import Context
@@ -45,6 +46,7 @@ def write(ctx: Context):
             db[name].bulk_write([InsertOne(d) for d in docs], ordered=False)
     if ctx.issues:
         db.ingestion_issues.insert_many(ctx.issues)
+    db.doc_chunks.insert_many(search.build_chunks(ctx.docs["documents"]))
 
     # Computed pattern: monthly index averages, the input to every price-adjustment clause
     db.market_prices.aggregate([
@@ -65,7 +67,9 @@ def write(ctx: Context):
         "counts": {k: len(v) for k, v in ctx.docs.items()},
         "issues": dict(Counter(i["severity"] for i in ctx.issues)),
     })
-    print(f"\nLoaded into database '{db.name}' (run {ctx.run_id}).")
+    print(f"\nLoaded into database '{db.name}' (run {ctx.run_id}). Building search indexes...")
+    search.ensure_indexes(db)
+    print("Search indexes ready.")
 
 
 def report(ctx: Context):
