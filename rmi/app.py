@@ -15,6 +15,7 @@ from rmi.db import get_db
 from rmi.engine import AS_OF
 from rmi.engine.margins import MarginModel
 from rmi.engine.opportunities import scan
+from rmi.engine.plan import reforecast
 from rmi.engine.prices import Market, material_price, quotation_prices
 
 app = FastAPI(title="RMI Agent")
@@ -73,7 +74,9 @@ def forecast():
     db = get_db()
     le = db.plans.find_one({"kind": "latest_estimate"}, sort=[("created_at", -1)])
     if not le:
-        return {}
+        # e.g. after a data reload: build the latest estimate from current contracts and forecast
+        reforecast(db, reason="baseline latest estimate")
+        le = db.plans.find_one({"kind": "latest_estimate"}, sort=[("created_at", -1)])
     budget_m = {}
     for l in db.plan_lines.aggregate([{"$match": {"plan_id": {"$in": ["FY2027-BUDGET-v1", le["_id"]]}}},
                                       {"$group": {"_id": {"p": "$plan_id", "m": "$month"},
