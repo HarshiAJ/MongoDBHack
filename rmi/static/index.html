@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMI Agent</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1c2430; --muted:#6b7684; --line:#e3e7ec; --accent:#0b6e4f;
+          --bad:#c0392b; --warn:#b7791f; --good:#1e7d4f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#12352b; color:#fff; padding:14px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; }
+  header span { color:#b9d8cc; font-size:13px; }
+  nav { display:flex; gap:4px; padding:0 16px; background:#fff; border-bottom:1px solid var(--line); overflow-x:auto; }
+  nav button { border:0; background:none; padding:12px 14px; cursor:pointer; font-size:14px; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  nav button.on { color:var(--ink); border-color:var(--accent); font-weight:600; }
+  main { padding:16px; max-width:1200px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; margin-bottom:14px; overflow-x:auto; }
+  .card h2 { font-size:15px; margin:0 0 10px; }
+  .hint { color:var(--muted); font-size:13px; margin:-4px 0 10px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
+  .bad { color:var(--bad); font-weight:600; } .warn { color:var(--warn); font-weight:600; } .good { color:var(--good); font-weight:600; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; background:#eef1f4; }
+  .pill.high { background:#fde8e6; color:var(--bad); } .pill.medium { background:#fdf3e1; color:var(--warn); }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+  .kpi { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .kpi b { display:block; font-size:20px; } .kpi small { color:var(--muted); }
+  button.act { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 14px; cursor:pointer; font-size:14px; }
+  button.act:disabled { opacity:.5; cursor:wait; }
+  textarea, input[type=text] { width:100%; font:inherit; padding:8px; border:1px solid var(--line); border-radius:6px; }
+  .proposal { border:1px solid var(--line); border-radius:8px; padding:10px; margin:8px 0; }
+  .proposal pre { white-space:pre-wrap; background:#f8f9fb; padding:8px; border-radius:6px; font:12.5px/1.45 inherit; margin:6px 0 0; }
+  .chatlog div { margin:8px 0; padding:8px 10px; border-radius:8px; white-space:pre-wrap; }
+  .chatlog .u { background:#e6f2ec; } .chatlog .a { background:#fff; border:1px solid var(--line); }
+  svg.spark { vertical-align:middle; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<header><h1>RMI Agent</h1><span>Raw material intelligence for Purchasing &amp; Sales · Veltra Automotive · as of 26 Sep 2026</span></header>
+<nav id="tabs"></nav>
+<main id="view"></main>
+<script>
+const TABS = [["materials","Materials"],["margins","Margins"],["levers","Levers"],["forecast","Forecast vs Budget"],["cases","Agent cases"],["chat","Ask"]];
+const eur = v => (v<0?"-":"")+"€"+Math.abs(Math.round(v)).toLocaleString();
+const pct = v => v==null?"–":v.toFixed(1)+"%";
+const cls = (v,good=0,warn=-2) => v>=good?"good":v>=warn?"warn":"bad";
+const $ = s => document.querySelector(s);
+const api = (p,o) => fetch(p,o).then(r=>r.json());
+const post = (p,b) => api(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});
+let tab = "materials";
+
+function nav(){ $("#tabs").innerHTML = TABS.map(([k,l])=>`<button class="${k==tab?"on":""}" onclick="go('${k}')">${l}</button>`).join(""); }
+function go(k){ tab=k; nav(); $("#view").innerHTML='<div class="card">Loading…</div>'; VIEWS[k](); }
+
+function spark(pts){
+  if(!pts.length) return "";
+  const v=pts.map(p=>p.avg), mn=Math.min(...v), mx=Math.max(...v), w=120, h=28;
+  const d=v.map((x,i)=>`${i?"L":"M"}${(i/(v.length-1)*w).toFixed(1)},${(h-2-(x-mn)/((mx-mn)||1)*(h-4)).toFixed(1)}`).join("");
+  return `<svg class="spark" width="${w}" height="${h}"><path d="${d}" fill="none" stroke="#0b6e4f" stroke-width="1.6"/></svg>`;
+}
+
+const VIEWS = {
+  async materials(){
+    const m = await api("/api/materials");
+    $("#view").innerHTML = `<div class="card"><h2>Materials performance</h2>
+      <p class="hint">October price from the supplier contract formulas (blended by purchase volume) vs the quotation basis and the FY2027 budget.</p>
+      <table><tr><th>Material</th><th>Index</th><th>Index trend (12 mo)</th><th class="n">Quote €/kg</th><th class="n">Budget €/kg</th><th class="n">Oct €/kg</th><th class="n">vs budget</th></tr>
+      ${m.map(r=>`<tr><td><b>${r.id}</b><br><small>${r.description||""}</small></td><td>${r.index}</td><td>${spark(r.trend)} ${r.trend.length?r.trend.at(-1).avg.toLocaleString():""}</td>
+      <td class="n">${r.quote_eur_kg.toFixed(3)}</td><td class="n">${r.budget_eur_kg.toFixed(3)}</td><td class="n">${r.oct_eur_kg.toFixed(3)}</td>
+      <td class="n ${cls(-r.vs_budget_pct,0,-3)}">${r.vs_budget_pct>0?"+":""}${r.vs_budget_pct.toFixed(1)}%</td></tr>`).join("")}</table></div>`;
+  },
+  async margins(){
+    const m = await api("/api/margins");
+    const below = m.filter(r=>r.margin_pct<r.target_margin_pct);
+    $("#view").innerHTML = `<div class="kpis">
+      <div class="kpi"><small>Parts below target margin</small><b class="bad">${below.length} / ${m.length}</b></div>
+      <div class="kpi"><small>Unrecovered material cost / month</small><b>${eur(m.reduce((s,r)=>s+r.unrecovered_month,0))}</b></div>
+      <div class="kpi"><small>Lowest margin</small><b class="bad">${pct(m[0].margin_pct)}</b><small>${m[0].customer_id} ${m[0].product_id}</small></div></div>
+      <div class="card"><h2>Customer contracts vs vendor contracts: October 2026</h2>
+      <p class="hint">Per piece: contract piece price + surcharge recovery − material cost (supplier formulas, BOM, yield) − conversion cost.</p>
+      <table><tr><th>Customer</th><th>Part</th><th class="n">Price</th><th class="n">Surcharge</th><th class="n">Material</th><th class="n">Conversion</th><th class="n">Margin</th><th class="n">Plan</th><th class="n">Target</th><th>Unrecovered exposure</th><th class="n">€ / month</th></tr>
+      ${m.map(r=>`<tr><td>${r.customer_id}</td><td>${r.product_id}</td><td class="n">${r.piece_price.toFixed(2)}</td><td class="n">${r.surcharge.toFixed(2)}</td>
+      <td class="n">${r.material_cost_pc.toFixed(2)}</td><td class="n">${r.conversion_cost_pc.toFixed(2)}</td>
+      <td class="n ${cls(r.margin_pct-r.target_margin_pct)}">${pct(r.margin_pct)}</td><td class="n">${pct(r.plan_margin_pct)}</td><td class="n">${r.target_margin_pct}%</td>
+      <td>${r.exposure.filter(e=>e.unrecovered>0.01).map(e=>`<span class="pill">${e.index} ${e.increase_pct>0?"+":""}${e.increase_pct}%${e.covered_by_surcharge?"":" · not covered"}</span>`).join(" ")}</td>
+      <td class="n">${eur(r.unrecovered_month)}</td></tr>`).join("")}</table></div>`;
+  },
+  async levers(){
+    const f = await api("/api/opportunities");
+    const tbl = (side,title,hint) => `<div class="card"><h2>${title}</h2><p class="hint">${hint}</p>
+      <table><tr><th>Urgency</th><th>Lever</th><th>Finding</th><th class="n">Value</th><th>Deadline</th></tr>
+      ${f.filter(x=>x.side==side).map(x=>`<tr><td><span class="pill ${x.urgency}">${x.urgency}</span></td><td>${x.kind.replaceAll("_"," ")}</td><td>${x.title}</td>
+      <td class="n">${x.value_eur?eur(x.value_eur):"–"}</td><td>${x.deadline?x.deadline+`<br><small>${x.days_left} days</small>`:"–"}</td></tr>`).join("")}</table></div>`;
+    $("#view").innerHTML = tbl("customer","Customer renegotiation (Sales)","Hardship, price review, price-down waiver and billing checks from the customer contracts.")
+                         + tbl("vendor","Vendor renegotiation (Purchasing)","Claim checks, decreases owed, meet-competition vs RFQs, renewals and offers.")
+                         + `<div class="card row"><button class="act" onclick="openCase(this)">Let the agent prepare actions</button><span class="hint">Opens a case: evidence, drafts, then your approval.</span></div>`;
+  },
+  async forecast(){
+    const f = await api("/api/forecast");
+    if(!f.totals){ $("#view").innerHTML='<div class="card">No latest estimate yet. Open an agent case first.</div>'; return; }
+    const t=f.totals, br=f.bridge, max=Math.max(...f.monthly.map(x=>Math.max(x.budget,x.le)));
+    $("#view").innerHTML = `<div class="kpis">
+      <div class="kpi"><small>Budget contribution FY2027</small><b>${eur(t.budget.contribution)}</b><small>${pct(t.budget.margin_pct)} margin</small></div>
+      <div class="kpi"><small>Latest estimate</small><b>${eur(t.le.contribution)}</b><small>${pct(t.le.margin_pct)} margin</small></div>
+      <div class="kpi"><small>Gap vs budget</small><b class="${t.contribution_delta<0?"bad":"good"}">${eur(t.contribution_delta)}</b></div></div>
+      <div class="card"><h2>Contribution bridge: budget → latest estimate</h2>
+      <table>${Object.entries(br).map(([k,v])=>`<tr><td>${k.replaceAll("_"," ")}</td><td class="n ${v<0?"bad":"good"}">${eur(v)}</td></tr>`).join("")}</table></div>
+      <div class="card"><h2>Monthly contribution</h2><p class="hint">Grey: budget · green: latest estimate (${f.plan_id})</p>
+      <table>${f.monthly.map(x=>`<tr><td style="width:80px">${x.month}</td><td>
+        <div style="background:#cfd6dd;height:8px;width:${x.budget/max*100}%"></div><div style="background:#0b6e4f;height:8px;width:${x.le/max*100}%;margin-top:2px"></div></td>
+        <td class="n" style="width:110px">${eur(x.le-x.budget)}</td></tr>`).join("")}</table></div>
+      <div class="card"><h2>By customer</h2><table><tr><th>Customer</th><th class="n">Budget</th><th class="n">Latest</th><th class="n">Volume</th><th class="n">Price &amp; surcharge</th><th class="n">Material</th></tr>
+      ${Object.entries(f.by_customer).map(([c,v])=>`<tr><td>${c}</td><td class="n">${eur(v.budget_contribution)}</td><td class="n">${eur(v.le_contribution)}</td><td class="n">${eur(v.volume)}</td><td class="n">${eur(v.price_and_surcharge)}</td><td class="n">${eur(v.material)}</td></tr>`).join("")}</table></div>
+      <div class="card"><h2>Accepted contract changes in this forecast</h2><table>${(f.changes||[]).map(c=>`<tr><td>${c.contract_id}</td><td>${c.type}</td><td>${c.price??""}</td><td>${c.effective_from??""}</td><td>${c.reason}</td></tr>`).join("")||"<tr><td>None yet</td></tr>"}</table></div>`;
+  },
+  async cases(){
+    const cs = await api("/api/cases");
+    $("#view").innerHTML = `<div class="card"><h2>Record a counterparty response</h2><p class="hint">Paste a customer or supplier reply; the agent extracts what was agreed, you confirm, and the forecast updates.</p>
+      <div class="row"><input type="text" id="party" placeholder="Party id, e.g. V-100101" style="max-width:220px"></div>
+      <textarea id="resp" rows="5" placeholder="Paste the email text"></textarea>
+      <div class="row" style="margin-top:8px"><button class="act" onclick="respond(this)">Read response</button></div></div>
+      <div class="card"><h2>Cases</h2><table><tr><th>Case</th><th>Trigger</th><th>Status</th><th>Updated</th><th></th></tr>
+      ${cs.map(c=>`<tr><td>${c._id}</td><td>${c.trigger.type}</td><td><span class="pill ${c.status=="awaiting_approval"?"medium":""}">${c.status}</span></td><td>${c.updated_at||c.created_at}</td>
+      <td><button onclick="showCase('${c._id}')">Open</button></td></tr>`).join("")}</table></div><div id="casebox"></div>`;
+  },
+  async chat(){
+    $("#view").innerHTML = `<div class="card"><h2>Ask the RMI assistant</h2><p class="hint">e.g. "Why is Sakura's harness margin so low?", "What does the AluCast contract say about competing offers?", "Where are we vs budget?"</p>
+      <div class="chatlog" id="log"></div><div class="row"><input type="text" id="q" placeholder="Ask a question" onkeydown="if(event.key=='Enter')ask()"><button class="act" onclick="ask()">Ask</button></div></div>`;
+  },
+};
+
+async function openCase(btn){ btn.disabled=true; btn.textContent="Agent is working…"; const r=await post("/api/cases",{type:"scheduled_review"}); tab="cases"; nav(); await VIEWS.cases(); showCase(r.case_id); }
+async function respond(btn){ btn.disabled=true; btn.textContent="Reading…"; const r=await post("/api/cases",{type:"counterparty_response",party_id:$("#party").value,text:$("#resp").value}); await VIEWS.cases(); showCase(r.case_id); }
+async function showCase(id){
+  const d = await api("/api/cases/"+id), p=d.pending, c=d.case;
+  let h = `<div class="card"><h2>${id}</h2>`;
+  if(p){
+    h += `<p class="hint">Waiting for your approval. Select what to approve; emails become drafts ready to send.</p>`;
+    h += p.items.map((it,i)=> p.kind=="proposals" ? `<div class="proposal"><label class="row"><input type="checkbox" checked data-id="${it.finding_id}">
+        <b>${it.action_type.replaceAll("_"," ")}</b> → ${it.counterparty_id} · ${it.value_eur?eur(it.value_eur):""} · deadline ${it.deadline||"–"}</label>
+        <div><b>${it.subject}</b></div><div class="hint" style="margin:4px 0">${it.rationale}</div><pre>${it.message}</pre></div>`
+      : `<div class="proposal"><label class="row"><input type="checkbox" checked data-id="${i}"><b>${it.type}</b> ${it.contract_id} · ${it.material_id||it.product_id||""} · ${it.price??""} ${it.currency||""} from ${it.effective_from||""}
+        ${it.vs_formula_pct!=null?`<span class="pill">${it.vs_formula_pct}% vs formula</span>`:""}</label><div class="hint">${it.reason}</div></div>`).join("");
+    h += `<button class="act" onclick="decide('${id}',this)">Approve selected</button>`;
+  } else {
+    h += `<p><span class="pill">${c.status}</span></p>${c.report?`<pre style="white-space:pre-wrap">${c.report}</pre>`:""}`;
+    if(d.actions.length) h += `<table><tr><th>Action</th><th>To</th><th>Subject</th><th>Status</th></tr>${d.actions.map(a=>`<tr><td>${a.action_type}</td><td>${a.counterparty_id}</td><td>${a.subject}</td><td>${a.status}</td></tr>`).join("")}</table>`;
+  }
+  $("#casebox").innerHTML = h+"</div>";
+}
+async function decide(id,btn){
+  btn.disabled=true; btn.textContent="Executing and re-forecasting…";
+  const ids=[...document.querySelectorAll("#casebox input[type=checkbox]:checked")].map(x=>+x.dataset.id);
+  await post(`/api/cases/${id}/decide`,{approve:ids}); await VIEWS.cases(); showCase(id);
+}
+async function ask(){
+  const q=$("#q").value.trim(); if(!q) return; $("#q").value="";
+  $("#log").insertAdjacentHTML("beforeend",`<div class="u">${q}</div><div class="a" id="pending">Thinking…</div>`);
+  const r=await post("/api/chat",{thread_id:"web",message:q}); $("#pending").textContent=r.answer; $("#pending").removeAttribute("id");
+}
+nav(); go(tab);
+</script>
+</body>
+</html>

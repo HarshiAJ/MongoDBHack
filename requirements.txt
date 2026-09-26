@@ -8,3 +8,5 @@ pydantic>=2.7
 langgraph>=1.2
 langchain-openai>=1.6
 langgraph-checkpoint-mongodb>=0.5
+fastapi>=0.110
+uvicorn>=0.29

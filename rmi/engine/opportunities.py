@@ -54,6 +54,8 @@ def supplier_notices(db, market) -> list[dict]:
         contract = db.contracts.find_one({"_id": n["contract_id"]})
         eff = month_start(n["valid_from"])
         expected = vendor_price(contract, n["material_id"], eff, market)
+        if expected.get("agreed"):
+            continue  # already settled with the supplier
         claimed = n["price"]["per_kg"]
         terms = contract["current_terms"] or {}
         lead = (n["valid_from"].date() - n["received_at"].date()).days if n.get("received_at") else None
@@ -90,7 +92,7 @@ def decreases_owed(db, market, month=None) -> list[dict]:
         for mid in c["material_ids"]:
             exp = vendor_price(c, mid, month, market)
             paid = last_paid(db, mid, c["party_id"])
-            if not paid or exp["triggered"] is None:
+            if not paid or exp.get("agreed") or exp.get("triggered") is None:
                 continue
             # compare in EUR: invoices may be in another currency than the contract price (Cuprum bills PLN)
             paid_eur = paid["price"]["per_kg_eur"]

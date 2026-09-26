@@ -114,6 +114,19 @@ response  interpret -> [buyer approval] -> apply -> replan -> report
 .venv/bin/python -m rmi.agent respond V-100101 data/demo/alucast_reply_2026-09-29.txt
 ```
 
+## Run the app
+
+```bash
+.venv/bin/uvicorn rmi.app:app --port 8000        # http://localhost:8000
+.venv/bin/python -m rmi.agent.watcher           # live trigger (change streams), separate terminal
+.venv/bin/python scripts/simulate_price_move.py ALU 3.0   # simulate a market move
+```
+
+Tabs for Purchasing and Sales: **Materials** (index trends, contract price vs quote and budget),
+**Margins** (customer contracts vs vendor contracts per part), **Levers** (customer and vendor
+renegotiation with value and deadline), **Forecast vs Budget** (bridge, monthly, accepted changes),
+**Agent cases** (approve proposals, record counterparty responses) and **Ask** (chat assistant).
+
 ## Sample data
 
 `python scripts/generate_sample_data.py` generates a fictional Tier-1 supplier dataset
