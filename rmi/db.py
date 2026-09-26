@@ -1,0 +1,107 @@
+"""MongoDB connection and collection setup for the RMI canonical model."""
+
+import os
+from functools import lru_cache
+from pathlib import Path
+
+from dotenv import load_dotenv
+from pymongo import ASCENDING, DESCENDING, MongoClient
+from pymongo.database import Database
+
+ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / ".env")
+
+
+@lru_cache
+def client() -> MongoClient:
+    return MongoClient(os.environ["MONGODB_URI"], appname="rmi-agent", serverSelectionTimeoutMS=15000)
+
+
+def get_db() -> Database:
+    return client()[os.environ.get("MONGODB_DB", "rmi")]
+
+
+# Canonical collections rebuilt by a full ingestion run. Agent-owned collections
+# (actions, memory, checkpoints, identifier_mappings) are never dropped here.
+INGESTED = [
+    "materials", "parties", "products", "po_lines", "price_quotes",
+    "forecasts", "market_prices", "index_monthly", "documents", "ingestion_issues",
+]
+
+SOURCE = {
+    "bsonType": "object",
+    "required": ["system", "file"],
+    "properties": {"system": {"bsonType": "string"}, "file": {"bsonType": "string"}},
+}
+
+VALIDATORS = {
+    "materials": {
+        "bsonType": "object",
+        "required": ["_id", "description", "uom", "index", "identifiers"],
+        "properties": {
+            "uom": {"enum": ["KG"]},
+            "index": {"enum": ["ALU", "CU", "ZN", "HRC", "PA66", "RUBBER"]},
+        },
+    },
+    "parties": {
+        "bsonType": "object",
+        "required": ["_id", "type", "name"],
+        "properties": {"type": {"enum": ["vendor", "customer"]}},
+    },
+    "po_lines": {
+        "bsonType": "object",
+        "required": ["_id", "material_id", "qty_kg", "price", "order_date", "source"],
+        "properties": {
+            "qty_kg": {"bsonType": ["double", "int"], "minimum": 0},
+            "price": {
+                "bsonType": "object",
+                "required": ["per_kg", "currency", "per_kg_eur"],
+                "properties": {"currency": {"enum": ["EUR", "USD", "PLN"]}},
+            },
+            "source": SOURCE,
+        },
+    },
+    "forecasts": {
+        "bsonType": "object",
+        "required": ["customer_id", "product_id", "month", "units", "source"],
+        "properties": {"units": {"bsonType": ["double", "int"], "minimum": 0}, "source": SOURCE},
+    },
+    "ingestion_issues": {
+        "bsonType": "object",
+        "required": ["run_id", "source", "rule", "severity", "message", "status"],
+        "properties": {
+            "severity": {"enum": ["info", "warning", "error"]},
+            "status": {"enum": ["open", "auto_fixed", "resolved", "dismissed"]},
+        },
+    },
+}
+
+
+def reset_ingested(db: Database) -> None:
+    """Drop and recreate the ingested collections with validators and indexes."""
+    for name in INGESTED:
+        db.drop_collection(name)
+
+    db.create_collection(
+        "market_prices",
+        timeseries={"timeField": "ts", "metaField": "meta", "granularity": "hours"},
+    )
+    for name in INGESTED:
+        if name == "market_prices":
+            continue
+        opts = {}
+        if name in VALIDATORS:
+            opts = {"validator": {"$jsonSchema": VALIDATORS[name]},
+                    "validationLevel": "strict", "validationAction": "error"}
+        db.create_collection(name, **opts)
+
+    db.market_prices.create_index([("meta.index", ASCENDING), ("ts", DESCENDING)])
+    db.po_lines.create_index([("material_id", ASCENDING), ("order_date", DESCENDING)])
+    db.po_lines.create_index([("vendor_id", ASCENDING), ("order_date", DESCENDING)])
+    db.price_quotes.create_index([("material_id", ASCENDING), ("valid_from", DESCENDING)])
+    db.forecasts.create_index([("product_id", ASCENDING), ("month", ASCENDING)])
+    db.materials.create_index("identifiers.sap_matnr", unique=True)
+    db.parties.create_index([("type", ASCENDING), ("sap_lifnr", ASCENDING)])
+    db.products.create_index("materials.material_id")
+    db.documents.create_index([("kind", ASCENDING), ("refs.contract_id", ASCENDING)])
+    db.ingestion_issues.create_index([("status", ASCENDING), ("severity", ASCENDING), ("source", ASCENDING)])

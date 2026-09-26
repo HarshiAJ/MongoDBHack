@@ -1,0 +1,25 @@
+{
+  "_comment": "Identifier mappings confirmed by buyers in earlier runs. The ingestion pipeline uses them to resolve free-text names; anything it cannot resolve is raised as an issue. The agent appends new confirmed mappings to the identifier_mappings collection.",
+  "material_aliases": {
+    "RM-AL-A380": ["AL A380", "Alu A380", "A380 ingot"],
+    "RM-AL-6061": ["AL 6061", "Alu sheet 6061", "6061-T6"],
+    "RM-ST-HRC": ["HRC S355", "Steel HRC", "HR coil"],
+    "RM-ST-CRC": ["CRC DC04", "Steel CRC", "CR coil"],
+    "RM-CU-ROD": ["Cu rod", "Copper 8mm", "CU wire rod"],
+    "RM-ZN-SHG": ["Zinc SHG", "Zn"],
+    "RM-PA66-GF30": ["PA66 GF30", "Nylon 66 GF30", "PA66"],
+    "RM-NR-SMR20": ["SMR20", "Nat. rubber", "NR SMR 20"]
+  },
+  "customers": {
+    "C-NORDWERK": {"name": "Nordwerk Fahrzeugbau AG", "country": "DE",
+                   "aliases": ["NORDWERK FAHRZEUGBAU AG", "Nordwerk", "Nordwerk FZB"]},
+    "C-BRIGHTLINE": {"name": "Brightline Motors Inc.", "country": "US",
+                     "aliases": ["Brightline Motors", "BRIGHTLINE MOTORS INC", "Brightline"]},
+    "C-SAKURA": {"name": "Sakura EV Corporation", "country": "JP",
+                 "aliases": ["Sakura EV Corp.", "SAKURA EV", "Sakura"]}
+  },
+  "index_units": {
+    "ALU": "USD/t", "CU": "USD/t", "ZN": "USD/t", "HRC": "EUR/t",
+    "PA66": "EUR/kg", "RUBBER": "USc/kg", "EURUSD": "USD per EUR", "EURPLN": "PLN per EUR"
+  }
+}
