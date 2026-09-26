@@ -1,0 +1,42 @@
+{
+  "collection": "agent_memory",
+  "description": "Long-term semantic memory (text is auto-embedded)",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab82d08badac7013c6fa117"
+      },
+      "ref": "neg-6ab8244d31817be0af696072",
+      "kind": "negotiation",
+      "party_id": "C-NORDWERK",
+      "text": "2025-06-03 Nordwerk Fahrzeugbau AG (CC-NW-2025-01): Copper cost increase on RD-120. Asked: +2.5% piece price. Outcome: Accepted +1.8% after 3 weeks. Lesson: Nordwerk needs LME evidence plus a cost breakdown per part before they engage",
+      "updated_at": {
+        "$date": "2026-09-26T20:52:57.809Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab82d09badac7013c6fa118"
+      },
+      "ref": "neg-6ab8244d31817be0af696073",
+      "kind": "negotiation",
+      "party_id": "C-BRIGHTLINE",
+      "text": "2025-11-14 Brightline Motors Inc. (CC-BL-2024-07): PA66 increase on WH-EV1. Asked: +2.5% piece price. Outcome: Rejected: PA66 is excluded in section 3. Lesson: Brightline only reopens prices through the annual price review; file it before the notice deadline",
+      "updated_at": {
+        "$date": "2026-09-26T20:52:57.993Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab82d09badac7013c6fa119"
+      },
+      "ref": "neg-6ab8244d31817be0af696074",
+      "kind": "negotiation",
+      "party_id": "V-100107",
+      "text": "2025-12-05 Keystone Rubber Co. (VC-2024-040): 2026 price. Asked: Hold 2.10 USD/kg. Outcome: Held flat in exchange for a 12-month volume commitment. Lesson: Keystone trades price for volume certainty",
+      "updated_at": {
+        "$date": "2026-09-26T20:52:58.169Z"
+      }
+    }
+  ]
+}

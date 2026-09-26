@@ -1,0 +1,78 @@
+{
+  "collection": "ingestion_issues",
+  "description": "Data-quality findings with rule, severity and lineage",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8314ee9aac9639ebc2e5d"
+      },
+      "run_id": "ingest-20260926T205523-fd5bec",
+      "source": {
+        "system": "rmi_tracker",
+        "file": "data/raw/rmi_tracker/RMI_Tracker_2026.xlsx",
+        "sheet": "Overrides",
+        "row": 3
+      },
+      "rule": "missing_approval",
+      "severity": "error",
+      "message": "Manual override 4.1 EUR/kg for RM-PA66-GF30 has no approver but feeds costing",
+      "status": "open",
+      "detected_at": {
+        "$date": "2026-09-26T20:55:23.979Z"
+      },
+      "entity": {
+        "material_id": "RM-PA66-GF30"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314ee9aac9639ebc2e60"
+      },
+      "run_id": "ingest-20260926T205523-fd5bec",
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/2LIS_02_ITM_po_history.csv",
+        "row": 202
+      },
+      "rule": "missing_required_field",
+      "severity": "error",
+      "message": "PO 4500010201-10: vendor (LIFNR) is empty; line quarantined until the vendor is confirmed",
+      "status": "open",
+      "detected_at": {
+        "$date": "2026-09-26T20:55:23.979Z"
+      },
+      "entity": {
+        "po_line": "4500010201-10",
+        "material_id": "RM-AL-A380"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314ee9aac9639ebc2e63"
+      },
+      "run_id": "ingest-20260926T205523-fd5bec",
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/2LIS_02_ITM_po_history.csv",
+        "row": 59
+      },
+      "rule": "price_outlier",
+      "severity": "error",
+      "message": "PO 4500010058-10: 39.50 EUR/kg is 10.0x the median 3.95 EUR/kg for RM-PA66-GF30 (likely decimal slip)",
+      "status": "open",
+      "detected_at": {
+        "$date": "2026-09-26T20:55:23.979Z"
+      },
+      "record": {
+        "NETPR": "39500.00",
+        "PEINH": "1000",
+        "MENGE": "14030",
+        "MEINS": "KG"
+      },
+      "entity": {
+        "po_line": "4500010058-10",
+        "material_id": "RM-PA66-GF30"
+      }
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "collection": "contracts",
+  "description": "Customer contract: surcharge rules, piece prices, renegotiation levers",
+  "documents": [
+    {
+      "_id": "CC-BL-2024-07",
+      "type": "customer",
+      "party_id": "C-BRIGHTLINE",
+      "party_name": "Brightline Motors Inc.",
+      "material_ids": [],
+      "product_ids": [
+        "FG-WH-EV1",
+        "FG-BE-500",
+        "FG-BC-200"
+      ],
+      "signed": {
+        "$date": "2024-07-01T00:00:00Z"
+      },
+      "expires": {
+        "$date": "2027-06-30T00:00:00Z"
+      },
+      "summary": {
+        "customer_name": "Brightline Motors Inc.",
+        "product_ids": [
+          "FG-WH-EV1",
+          "FG-BE-500",
+          "FG-BC-200"
+        ],
+        "signed": "2024-07-01",
+        "expires": "2027-06-30",
+        "excluded_materials": [
+          "Resins (including PA66)",
+          "rubber",
+          "steel"
+        ],
+        "claim_rule": "Claims must be filed within 30 days after quarter end or are forfeited.",
+        "claim_deadline_days": 30,
+        "claim_deadline_reference": "after_quarter_end",
+        "annual_price_down_pct": 2.0
+      },
+      "levers": [
+        {
+          "type": "annual_price_review",
+          "section": "6. Annual price review",
+          "threshold_pct": null,
+          "notice_days": 60,
+          "deadline_rule": "at least 60 days before 1 January",
+          "effect": "Either party may request a review of piece prices for the following calendar year."
+        },
+        {
+          "type": "price_down_waiver",
+          "section": "7. Price-down waiver",
+          "threshold_pct": 5.0,
+          "notice_days": null,
+          "deadline_rule": null,
+          "effect": "The annual price-down may be waived for a calendar year by mutual agreement if Supplier documents raw material cost increases above 5% on the part."
+        }
+      ],
+      "piece_prices": [
+        {
+          "product_id": "FG-WH-EV1",
+          "price_2025_eur": 71.87,
+          "price_2026_eur": 70.43
+        },
+        {
+          "product_id": "FG-BE-500",
+          "price_2025_eur": 142.03,
+          "price_2026_eur": 139.19
+        },
+        {
+          "product_id": "FG-BC-200",
+          "price_2025_eur": 19.14,
+          "price_2026_eur": 18.76
+        }
+      ],
+      "terms_timeline": [
+        {
+          "effective_from": {
+            "$date": "2024-07-01T00:00:00Z"
+          },
+          "terms": {
+            "surcharges": [
+              {
+                "index_code": "ALU",
+                "reference_value": 2350.0,
+                "trigger_pct": 5.0,
+                "pass_through_share": 0.8,
+                "averaging": "prior quarter average",
+                "averaging_months": 3,
+                "timing": "with a lag of one quarter",
+                "cap_pct": null
+              },
+              {
+                "index_code": "CU",
+                "reference_value": 9100.0,
+                "trigger_pct": 5.0,
+                "pass_through_share": 0.8,
+                "averaging": "prior quarter average",
+                "averaging_months": 3,
+                "timing": "with a lag of one quarter",
+                "cap_pct": null
+              }
+            ]
+          },
+          "document_id": "CC-BL-2024-07_Brightline"
+        }
+      ],
+      "amendments": [],
+      "documents": [
+        "CC-BL-2024-07_Brightline"
+      ],
+      "extraction_status": "extracted",
+      "current_terms": {
+        "surcharges": [
+          {
+            "index_code": "ALU",
+            "reference_value": 2350.0,
+            "trigger_pct": 5.0,
+            "pass_through_share": 0.8,
+            "averaging": "prior quarter average",
+            "averaging_months": 3,
+            "timing": "with a lag of one quarter",
+            "cap_pct": null
+          },
+          {
+            "index_code": "CU",
+            "reference_value": 9100.0,
+            "trigger_pct": 5.0,
+            "pass_through_share": 0.8,
+            "averaging": "prior quarter average",
+            "averaging_months": 3,
+            "timing": "with a lag of one quarter",
+            "cap_pct": null
+          }
+        ]
+      }
+    }
+  ]
+}

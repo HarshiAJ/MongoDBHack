@@ -1,0 +1,38 @@
+{
+  "collection": "agent_cases",
+  "description": "Agent case: trigger, status, report, forecast",
+  "documents": [
+    {
+      "_id": "CASE-20260926-201743-f797",
+      "trigger": {
+        "type": "scheduled_review"
+      },
+      "status": "done",
+      "created_at": {
+        "$date": "2026-09-26T20:17:43.972Z"
+      },
+      "findings": 14,
+      "updated_at": {
+        "$date": "2026-09-26T20:18:42Z"
+      },
+      "pending": 10,
+      "forecast": {
+        "plan_id": "FY2027-LE-20260926T201838",
+        "budget_contribution": 741949.9,
+        "le_contribution": 526541.35,
+        "delta_vs_budget": -215408.55,
+        "le_margin_pct": 7.84,
+        "budget_margin_pct": 10.63,
+        "bridge": {
+          "volume": -45579.85,
+          "price_and_surcharge": 157644.63,
+          "material": -327473.29,
+          "conversion": 0.0
+        },
+        "previous_plan_id": null,
+        "delta_vs_previous": null
+      },
+      "report": "**Case Report for Head of Purchasing**\n\n**What happened:**  \nTen contract actions were executed, including supplier claim checks, price adjustments, renewal negotiations, billing corrections, hardship requests, and price reviews. Key actions included enforcing contractual notice periods for price increases, invoking meet-competition clauses to secure lower prices, correcting overbilling, and requesting price decreases due to index drops.\n\n**What was approved:**  \nAll actions were approved by the buyer, resulting in price corrections (e.g., RM-AL-A380, RM-ST-CRC/HRC), credit notes for overbilli... [536 more chars]"
+    }
+  ]
+}

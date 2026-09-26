@@ -1,0 +1,56 @@
+{
+  "collection": "plan_lines",
+  "description": "Plan line: month x customer x part",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8314ee9aac9639ebc2e41"
+      },
+      "plan_id": "FY2027-BUDGET-v1",
+      "month": {
+        "$date": "2026-10-01T00:00:00Z"
+      },
+      "customer_id": "C-SAKURA",
+      "product_id": "FG-BE-500",
+      "units": 583,
+      "piece_price": 134.55,
+      "revenue": 78442.65,
+      "material_cost": 52223.14,
+      "conversion_cost": 19822,
+      "contribution": 6397.51,
+      "margin_pct": 8.16,
+      "source": {
+        "system": "finance",
+        "file": "data/raw/finance/budget_FY2027.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "Plan",
+        "row": 74
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314ee9aac9639ebc2e42"
+      },
+      "plan_id": "FY2027-BUDGET-v1",
+      "month": {
+        "$date": "2026-11-01T00:00:00Z"
+      },
+      "customer_id": "C-SAKURA",
+      "product_id": "FG-BE-500",
+      "units": 613,
+      "piece_price": 134.55,
+      "revenue": 82479.15,
+      "material_cost": 54910.44,
+      "conversion_cost": 20842,
+      "contribution": 6726.71,
+      "margin_pct": 8.16,
+      "source": {
+        "system": "finance",
+        "file": "data/raw/finance/budget_FY2027.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "Plan",
+        "row": 75
+      }
+    }
+  ]
+}

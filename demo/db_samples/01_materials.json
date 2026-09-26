@@ -1,0 +1,73 @@
+{
+  "collection": "materials",
+  "description": "Canonical raw material: SAP number, aliases, thresholds, plant yields, lineage",
+  "documents": [
+    {
+      "_id": "RM-AL-A380",
+      "index": "ALU",
+      "uom": "KG",
+      "identifiers": {
+        "sap_matnr": "000000000040001001",
+        "tracker_name": "Alu A380 ingot",
+        "aliases": [
+          "AL A380",
+          "Alu A380",
+          "A380 ingot"
+        ]
+      },
+      "thresholds": {
+        "warn_pct": 5,
+        "critical_pct": 10
+      },
+      "yield": [
+        {
+          "plant": "Wolfsried",
+          "yield_pct": 93.6,
+          "owner": "Controlling",
+          "reviewed": {
+            "$date": "2026-03-31T00:00:00Z"
+          },
+          "source": {
+            "system": "excel_inputs",
+            "file": "data/raw/excel_inputs/yield_factors_2026.xlsx",
+            "run_id": "ingest-20260926T205523-fd5bec",
+            "sheet": "Yield factors",
+            "row": 2
+          }
+        },
+        {
+          "plant": "Greenville",
+          "yield_pct": 93.0,
+          "owner": "Controlling",
+          "reviewed": {
+            "$date": "2026-06-30T00:00:00Z"
+          },
+          "source": {
+            "system": "excel_inputs",
+            "file": "data/raw/excel_inputs/yield_factors_2026.xlsx",
+            "run_id": "ingest-20260926T205523-fd5bec",
+            "sheet": "Yield factors",
+            "row": 18
+          }
+        }
+      ],
+      "sources": [
+        {
+          "system": "rmi_tracker",
+          "file": "data/raw/rmi_tracker/RMI_Tracker_2026.xlsx",
+          "run_id": "ingest-20260926T205523-fd5bec",
+          "sheet": "Material Map",
+          "row": 2
+        },
+        {
+          "system": "sap_bw",
+          "file": "data/raw/sap_bw/0MATERIAL_master.csv",
+          "run_id": "ingest-20260926T205523-fd5bec",
+          "row": 2
+        }
+      ],
+      "description": "Aluminium alloy A380 ingot",
+      "material_group": "RM-NF"
+    }
+  ]
+}

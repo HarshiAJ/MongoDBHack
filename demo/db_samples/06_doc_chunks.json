@@ -1,0 +1,25 @@
+{
+  "collection": "doc_chunks",
+  "description": "Search unit for hybrid search (content is auto-embedded by Atlas)",
+  "documents": [
+    {
+      "_id": "CC-BL-2024-07_Brightline#8",
+      "document_id": "CC-BL-2024-07_Brightline",
+      "kind": "customer_contract",
+      "contract_id": "CC-BL-2024-07",
+      "party_ids": [
+        "C-BRIGHTLINE"
+      ],
+      "indices": [],
+      "title": "Supply Agreement CC-BL-2024-07",
+      "heading": "6. Annual price review",
+      "text": "Either party may request a review of piece prices for the following calendar year by written notice received at least 60 days before 1 January. The review shall consider documented changes in raw material costs not covered by Section 3.",
+      "content": "Supply Agreement CC-BL-2024-07 - 6. Annual price review: Either party may request a review of piece prices for the following calendar year by written notice received at least 60 days before 1 January. The review shall consider documented changes in raw material costs not covered by Section 3.",
+      "source": {
+        "system": "documents",
+        "file": "data/raw/contracts/customer/CC-BL-2024-07_Brightline.pdf",
+        "run_id": "ingest-20260926T205523-fd5bec"
+      }
+    }
+  ]
+}

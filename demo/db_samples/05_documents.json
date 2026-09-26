@@ -1,0 +1,125 @@
+{
+  "collection": "documents",
+  "description": "Source document: full text, sections, verified extraction evidence",
+  "documents": [
+    {
+      "_id": "VC-2025-014_AluCast",
+      "kind": "vendor_contract",
+      "title": "Supply Agreement VC-2025-014",
+      "text": "Supply Agreement VC-2025-014\nContract no. VC-2025-014   Supplier no. 0000100101\nThis Supply Agreement is made on 2025-01-15 between Veltra Automotive GmbH (\"Buyer\") and\nAluCast Iberia S.L., ES (\"Supplier\").\n1. Scope\nSupplier shall deliver Aluminium alloy A380 ingot to Buyer's plants in Wolfsried (DE) and Greenville\n(US). Estimated annual volume: 1,300 metric tonnes. Volumes are non-binding forecasts; Buyer\ncommits to a minimum offtake of 909 t per contract year.\n2. Term\nThe Agreement is effective from signature and expires on 2027-12-31. Either party may terminate\nwith 30 days written notice. ... [1451 more chars]",
+      "sections": [
+        {
+          "n": 0,
+          "heading": "Preamble",
+          "text": "Supply Agreement VC-2025-014 Contract no. VC-2025-014   Supplier no. 0000100101 This Supply Agreement is made on 2025-01-15 between Veltra Automotive GmbH (\"Buyer\") and AluCast Iberia S.L., ES (\"Supplier\")."
+        },
+        {
+          "n": 1,
+          "heading": "1. Scope",
+          "text": "Supplier shall deliver Aluminium alloy A380 ingot to Buyer's plants in Wolfsried (DE) and Greenville (US). Estimated annual volume: 1,300 metric tonnes. Volumes are non-binding forecasts; Buyer commits to a minimum offtake of 909 t per contract year."
+        },
+        {
+          "n": 2,
+          "heading": "2. Term",
+          "text": "The Agreement is effective from signature and expires on 2027-12-31. Either party may terminate with 30 days written notice. Renewal negotiations shall start no later than 15 days before expiry."
+        },
+        {
+          "n": 3,
+          "heading": "3. Price",
+          "text": "The base price is 2.85 EUR/kg, delivered DAP Buyer's plant."
+        },
+        "... [4 more items]"
+      ],
+      "refs": {
+        "contract_id": "VC-2025-014",
+        "party_ids": [
+          "V-100101"
+        ],
+        "expires": "2027-12-31"
+      },
+      "extraction": {
+        "status": "extracted",
+        "model": "gpt-4.1",
+        "extracted_at": {
+          "$date": "2026-09-26T20:57:41.397Z"
+        },
+        "result": {
+          "contract_id": "VC-2025-014",
+          "supplier_name": "AluCast Iberia S.L.",
+          "material_ids": [
+            "RM-AL-A380"
+          ],
+          "signed": "2025-01-15",
+          "expires": "2027-12-31",
+          "base_price": 2.85,
+          "base_price_unit": "EUR/kg",
+          "price_notes": null,
+          "invoicing_currency": "EUR",
+          "fixed_price": false,
+          "price_adjustment": {
+            "index_code": "ALU",
+            "index_name": "LME Aluminium cash settlement index",
+            "reference_period": "2024-12",
+            "reference_value": 2350.0,
+            "reference_unit": "USD/t",
+            "review_frequency": "monthly",
+            "averaging_months": 1,
+            "trigger_pct": 5.0,
+            "pass_through_share": 1.0,
+            "annual_cap_pct": null,
+            "notice_days": 15,
+            "fx_rule": "The relative index change is calculated in the index currency; no currency conversion is applied to the adjustment."
+          },
+          "annual_volume_t": 1300.0,
+          "min_offtake_t": 909.0,
+          "termination_notice_days": 30,
+          "renewal_notice_days": 15,
+          "payment_terms": "Payment 60 days end of month.",
+          "levers": [
+            {
+              "type": "meet_competition",
+              "section": "7. Competitiveness",
+              "threshold_pct": 5.0,
+              "notice_days": 30,
+              "deadline_rule": "within 30 days of receipt",
+              "effect": "Supplier must match a written offer from a qualified supplier that is more than 5% below the contract price, or Buyer may reallocate up to 30% of annual volume."
+            }
+          ]
+        },
+        "evidence": [
+          {
+            "field": "signed",
+            "section": "",
+            "quote": "This Supply Agreement is made on 2025-01-15 between Veltra Automotive GmbH (\"Buyer\") and AluCast Iberia S.L., ES (\"Supplier\").",
+            "verified": true
+          },
+          {
+            "field": "expires",
+            "section": "2. Term",
+            "quote": "The Agreement is effective from signature and expires on 2027-12-31.",
+            "verified": true
+          },
+          {
+            "field": "base_price",
+            "section": "3. Price",
+            "quote": "The base price is 2.85 EUR/kg, delivered DAP Buyer's plant.",
+            "verified": true
+          },
+          {
+            "field": "base_price_unit",
+            "section": "3. Price",
+            "quote": "The base price is 2.85 EUR/kg, delivered DAP Buyer's plant.",
+            "verified": true
+          },
+          "... [20 more items]"
+        ],
+        "unverified_fields": []
+      },
+      "source": {
+        "system": "documents",
+        "file": "data/raw/contracts/vendor/VC-2025-014_AluCast.pdf",
+        "run_id": "ingest-20260926T205523-fd5bec"
+      }
+    }
+  ]
+}

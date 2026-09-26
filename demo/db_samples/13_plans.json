@@ -1,0 +1,185 @@
+{
+  "collection": "plans",
+  "description": "Plan versions: approved budget and latest estimate with bridge",
+  "documents": [
+    {
+      "_id": "FY2027-BUDGET-v1",
+      "kind": "budget",
+      "fiscal_year": "FY2027",
+      "version": "FY2027 Budget v1.0",
+      "period": {
+        "from": {
+          "$date": "2026-10-01T00:00:00Z"
+        },
+        "to": {
+          "$date": "2027-09-01T00:00:00Z"
+        }
+      },
+      "status": "approved",
+      "approved_on": {
+        "$date": "2026-06-30T00:00:00Z"
+      },
+      "approved_by": "CFO",
+      "comment": "Material prices at June 2026 index averages",
+      "assumptions": {
+        "indices": {
+          "ALU": {
+            "value": 2358.0462,
+            "unit": "USD/t",
+            "basis": "June 2026 average"
+          },
+          "CU": {
+            "value": 8514.6304,
+            "unit": "USD/t",
+            "basis": "June 2026 average"
+          },
+          "ZN": {
+            "value": 2699.6333,
+            "unit": "USD/t",
+            "basis": "June 2026 average"
+          },
+          "HRC": {
+            "value": 626.9138,
+            "unit": "EUR/t",
+            "basis": "June 2026 average"
+          },
+          "PA66": {
+            "value": 3.146,
+            "unit": "EUR/kg",
+            "basis": "June 2026 average"
+          },
+          "RUBBER": {
+            "value": 167.8117,
+            "unit": "USc/kg",
+            "basis": "June 2026 average"
+          }
+        },
+        "EURUSD": 1.0679,
+        "customer_price_down_pct": 2
+      },
+      "material_prices_eur_kg": {
+        "RM-AL-A380": 2.8515,
+        "RM-AL-6061": 4.4,
+        "RM-ST-HRC": 0.69,
+        "RM-ST-CRC": 0.785,
+        "RM-CU-ROD": 8.6082,
+        "RM-ZN-SHG": 3.3,
+        "RM-PA66-GF30": 3.95,
+        "RM-NR-SMR20": 1.9664
+      },
+      "source": {
+        "system": "finance",
+        "file": "data/raw/finance/budget_FY2027.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "Approval"
+      }
+    },
+    {
+      "_id": "FY2027-LE-20260926T212050",
+      "kind": "latest_estimate",
+      "fiscal_year": "FY2027",
+      "base_plan": "FY2027-BUDGET-v1",
+      "created_at": {
+        "$date": "2026-09-26T21:20:50.497Z"
+      },
+      "status": "draft",
+      "reason": "baseline latest estimate incl. accepted AluCast agreement",
+      "changes": [],
+      "assumptions": {
+        "market": "spot-flat: latest monthly index averages held constant",
+        "index_levels": {
+          "ZN": 2617.1058,
+          "RUBBER": 176.5158,
+          "CU": 9810.4268,
+          "ALU": 2666.8426,
+          "EURUSD": 1.0747,
+          "PA66": 3.274,
+          "HRC": 603.8,
+          "EURPLN": 4.2626
+        },
+        "volumes": "latest sales forecast",
+        "prices": "contract formulas incl. accepted changes"
+      },
+      "totals": {
+        "budget": {
+          "revenue": 6980125.61,
+          "material_cost": 3731279.71,
+          "conversion_cost": 2506896.0,
+          "contribution": 741949.9,
+          "units": 152076.0,
+          "margin_pct": 10.63
+        },
+        "le": {
+          "revenue": 6719315.25,
+          "material_cost": 3798277.34,
+          "conversion_cost": 2391030.65,
+          "contribution": 530007.2,
+          "units": 147467.5,
+          "margin_pct": 7.89
+        },
+        "contribution_delta": -211942.7
+      },
+      "variance_vs_budget": {
+        "totals": {
+          "budget": {
+            "revenue": 6980125.61,
+            "material_cost": 3731279.71,
+            "conversion_cost": 2506896.0,
+            "contribution": 741949.9,
+            "units": 152076.0,
+            "margin_pct": 10.63
+          },
+          "le": {
+            "revenue": 6719315.25,
+            "material_cost": 3798277.34,
+            "conversion_cost": 2391030.65,
+            "contribution": 530007.2,
+            "units": 147467.5,
+            "margin_pct": 7.89
+          },
+          "contribution_delta": -211942.7
+        },
+        "bridge": {
+          "volume": -45579.85,
+          "price_and_surcharge": 157644.63,
+          "material": -324007.42,
+          "conversion": 0.0
+        },
+        "by_customer": {
+          "C-NORDWERK": {
+            "volume": 9113.69,
+            "price_and_surcharge": 56601.34,
+            "material": -47104.97,
+            "conversion": -0.0,
+            "budget_contribution": 257926.55,
+            "le_contribution": 276536.6
+          },
+          "C-BRIGHTLINE": {
+            "volume": -51691.91,
+            "price_and_surcharge": 73210.25,
+            "material": -169581.38,
+            "conversion": 0.0,
+            "budget_contribution": 351450.52,
+            "le_contribution": 203387.44
+          },
+          "C-SAKURA": {
+            "volume": -3001.62,
+            "price_and_surcharge": 27833.04,
+            "material": -107321.08,
+            "conversion": 0.0,
+            "budget_contribution": 132572.83,
+            "le_contribution": 50083.16
+          }
+        }
+      },
+      "period": {
+        "from": {
+          "$date": "2026-10-01T00:00:00Z"
+        },
+        "to": {
+          "$date": "2027-09-01T00:00:00Z"
+        }
+      }
+    }
+  ]
+}

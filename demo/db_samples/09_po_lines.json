@@ -1,0 +1,70 @@
+{
+  "collection": "po_lines",
+  "description": "SAP purchase order line normalised to EUR/kg, with quality status",
+  "documents": [
+    {
+      "_id": "4500010001-10",
+      "po_number": "4500010001",
+      "material_id": "RM-AL-A380",
+      "vendor_id": "V-100101",
+      "plant": "1000",
+      "qty_kg": 49000.0,
+      "price": {
+        "per_kg": 2.85,
+        "currency": "EUR",
+        "per_kg_eur": 2.85
+      },
+      "order_date": {
+        "$date": "2025-01-02T00:00:00Z"
+      },
+      "raw": {
+        "NETPR": "2.85",
+        "PEINH": "1",
+        "MENGE": "49000",
+        "MEINS": "KG"
+      },
+      "quality": {
+        "status": "ok",
+        "flags": []
+      },
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/2LIS_02_ITM_po_history.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 2
+      }
+    },
+    {
+      "_id": "4500010002-10",
+      "po_number": "4500010002",
+      "material_id": "RM-AL-A380",
+      "vendor_id": "V-100102",
+      "plant": "1000",
+      "qty_kg": 13560.0,
+      "price": {
+        "per_kg": 3.05,
+        "currency": "USD",
+        "per_kg_eur": 2.839587
+      },
+      "order_date": {
+        "$date": "2025-01-26T00:00:00Z"
+      },
+      "raw": {
+        "NETPR": "3050.00",
+        "PEINH": "1000",
+        "MENGE": "13560",
+        "MEINS": "KG"
+      },
+      "quality": {
+        "status": "ok",
+        "flags": []
+      },
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/2LIS_02_ITM_po_history.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 3
+      }
+    }
+  ]
+}

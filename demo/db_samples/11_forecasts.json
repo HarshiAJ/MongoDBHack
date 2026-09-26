@@ -1,0 +1,44 @@
+{
+  "collection": "forecasts",
+  "description": "Sales forecast line (customer spelling resolved)",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8314ae9aac9639ebc2277"
+      },
+      "customer_id": "C-NORDWERK",
+      "product_id": "FG-BC-200",
+      "plant": "Wolfsried",
+      "month": {
+        "$date": "2026-10-01T00:00:00Z"
+      },
+      "units": 3343.7,
+      "customer_name_raw": "Nordwerk",
+      "source": {
+        "system": "sales",
+        "file": "data/raw/sales/forecast_EU_plant_2026-10.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 2
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314ae9aac9639ebc2278"
+      },
+      "customer_id": "C-NORDWERK",
+      "product_id": "FG-BC-200",
+      "plant": "Wolfsried",
+      "month": {
+        "$date": "2026-11-01T00:00:00Z"
+      },
+      "units": 3675.5,
+      "customer_name_raw": "Nordwerk",
+      "source": {
+        "system": "sales",
+        "file": "data/raw/sales/forecast_EU_plant_2026-10.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 3
+      }
+    }
+  ]
+}

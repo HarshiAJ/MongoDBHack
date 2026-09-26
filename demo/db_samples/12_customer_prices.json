@@ -1,0 +1,50 @@
+{
+  "collection": "customer_prices",
+  "description": "SAP sales price condition (cross-checked against contract Annex A)",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8314de9aac9639ebc2dee"
+      },
+      "customer_id": "C-BRIGHTLINE",
+      "product_id": "FG-BC-200",
+      "condition": "PR00",
+      "price_eur": 18.76,
+      "currency": "EUR",
+      "valid_from": {
+        "$date": "2026-01-01T00:00:00Z"
+      },
+      "valid_to": {
+        "$date": "9999-12-31T00:00:00Z"
+      },
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/A305_sales_price_conditions.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 12
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314de9aac9639ebc2ded"
+      },
+      "customer_id": "C-BRIGHTLINE",
+      "product_id": "FG-BC-200",
+      "condition": "PR00",
+      "price_eur": 19.14,
+      "currency": "EUR",
+      "valid_from": {
+        "$date": "2025-01-01T00:00:00Z"
+      },
+      "valid_to": {
+        "$date": "2025-12-31T00:00:00Z"
+      },
+      "source": {
+        "system": "sap_bw",
+        "file": "data/raw/sap_bw/A305_sales_price_conditions.csv",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "row": 11
+      }
+    }
+  ]
+}

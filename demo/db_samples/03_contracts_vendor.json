@@ -1,0 +1,239 @@
+{
+  "collection": "contracts",
+  "description": "Supplier contract: LLM-extracted terms, amendment timeline, levers, agreed prices",
+  "documents": [
+    {
+      "_id": "VC-2025-007",
+      "type": "vendor",
+      "party_id": "V-100104",
+      "party_name": "Baltic Steel Works AS",
+      "material_ids": [
+        "RM-ST-HRC",
+        "RM-ST-CRC"
+      ],
+      "product_ids": [],
+      "signed": {
+        "$date": "2025-01-05T00:00:00Z"
+      },
+      "expires": {
+        "$date": "2027-01-04T00:00:00Z"
+      },
+      "summary": {
+        "supplier_name": "Baltic Steel Works AS",
+        "material_ids": [
+          "RM-ST-HRC",
+          "RM-ST-CRC"
+        ],
+        "signed": "2025-01-05",
+        "expires": "2027-01-04",
+        "base_price": 690.0,
+        "base_price_unit": "EUR/t",
+        "price_notes": "CRC = HRC + 95 EUR/t extra, delivered DAP Buyer's plant.",
+        "invoicing_currency": "EUR",
+        "fixed_price": false,
+        "annual_volume_t": 3400.0,
+        "min_offtake_t": 2380.0,
+        "termination_notice_days": 60,
+        "renewal_notice_days": 30,
+        "payment_terms": "Payment 60 days end of month."
+      },
+      "levers": [],
+      "piece_prices": [],
+      "terms_timeline": [
+        {
+          "effective_from": {
+            "$date": "2025-01-05T00:00:00Z"
+          },
+          "terms": {
+            "index_code": "HRC",
+            "index_name": "Northwest Europe HRC steel index",
+            "reference_period": "2024-12",
+            "reference_value": 640.0,
+            "reference_unit": "EUR/t",
+            "review_frequency": "quarterly",
+            "averaging_months": 3,
+            "trigger_pct": 5.0,
+            "pass_through_share": 1.0,
+            "annual_cap_pct": null,
+            "notice_days": 30,
+            "fx_rule": null
+          },
+          "document_id": "VC-2025-007_Baltic"
+        },
+        {
+          "effective_from": {
+            "$date": "2026-07-01T00:00:00Z"
+          },
+          "terms": {
+            "index_code": "HRC",
+            "index_name": "Northwest Europe HRC steel index",
+            "reference_period": "2024-12",
+            "reference_value": 640.0,
+            "reference_unit": "EUR/t",
+            "review_frequency": "monthly",
+            "averaging_months": 1,
+            "trigger_pct": 3.0,
+            "pass_through_share": 1.0,
+            "annual_cap_pct": null,
+            "notice_days": 30,
+            "fx_rule": null
+          },
+          "document_id": "VC-2025-007-A1_Baltic_amendment"
+        }
+      ],
+      "amendments": [
+        {
+          "id": "VC-2025-007-A1",
+          "effective_from": {
+            "$date": "2026-07-01T00:00:00Z"
+          },
+          "changes": [
+            {
+              "field": "trigger_pct",
+              "old_value": "5.0",
+              "new_value": "3.0"
+            },
+            {
+              "field": "review_frequency",
+              "old_value": "quarterly",
+              "new_value": "monthly"
+            },
+            {
+              "field": "averaging_months",
+              "old_value": null,
+              "new_value": "1"
+            }
+          ],
+          "document_id": "VC-2025-007-A1_Baltic_amendment"
+        }
+      ],
+      "documents": [
+        "VC-2025-007_Baltic",
+        "VC-2025-007-A1_Baltic_amendment"
+      ],
+      "extraction_status": "extracted",
+      "current_terms": {
+        "index_code": "HRC",
+        "index_name": "Northwest Europe HRC steel index",
+        "reference_period": "2024-12",
+        "reference_value": 640.0,
+        "reference_unit": "EUR/t",
+        "review_frequency": "monthly",
+        "averaging_months": 1,
+        "trigger_pct": 3.0,
+        "pass_through_share": 1.0,
+        "annual_cap_pct": null,
+        "notice_days": 30,
+        "fx_rule": null
+      }
+    },
+    {
+      "_id": "VC-2025-014",
+      "type": "vendor",
+      "party_id": "V-100101",
+      "party_name": "AluCast Iberia S.L.",
+      "material_ids": [
+        "RM-AL-A380"
+      ],
+      "product_ids": [],
+      "signed": {
+        "$date": "2025-01-15T00:00:00Z"
+      },
+      "expires": {
+        "$date": "2027-12-31T00:00:00Z"
+      },
+      "summary": {
+        "supplier_name": "AluCast Iberia S.L.",
+        "material_ids": [
+          "RM-AL-A380"
+        ],
+        "signed": "2025-01-15",
+        "expires": "2027-12-31",
+        "base_price": 2.85,
+        "base_price_unit": "EUR/kg",
+        "price_notes": null,
+        "invoicing_currency": "EUR",
+        "fixed_price": false,
+        "annual_volume_t": 1300.0,
+        "min_offtake_t": 909.0,
+        "termination_notice_days": 30,
+        "renewal_notice_days": 15,
+        "payment_terms": "Payment 60 days end of month."
+      },
+      "levers": [
+        {
+          "type": "meet_competition",
+          "section": "7. Competitiveness",
+          "threshold_pct": 5.0,
+          "notice_days": 30,
+          "deadline_rule": "within 30 days of receipt",
+          "effect": "Supplier must match a written offer from a qualified supplier that is more than 5% below the contract price, or Buyer may reallocate up to 30% of annual volume."
+        }
+      ],
+      "piece_prices": [],
+      "terms_timeline": [
+        {
+          "effective_from": {
+            "$date": "2025-01-15T00:00:00Z"
+          },
+          "terms": {
+            "index_code": "ALU",
+            "index_name": "LME Aluminium cash settlement index",
+            "reference_period": "2024-12",
+            "reference_value": 2350.0,
+            "reference_unit": "USD/t",
+            "review_frequency": "monthly",
+            "averaging_months": 1,
+            "trigger_pct": 5.0,
+            "pass_through_share": 1.0,
+            "annual_cap_pct": null,
+            "notice_days": 15,
+            "fx_rule": "The relative index change is calculated in the index currency; no currency conversion is applied to the adjustment."
+          },
+          "document_id": "VC-2025-014_AluCast"
+        }
+      ],
+      "amendments": [],
+      "documents": [
+        "VC-2025-014_AluCast"
+      ],
+      "extraction_status": "extracted",
+      "current_terms": {
+        "index_code": "ALU",
+        "index_name": "LME Aluminium cash settlement index",
+        "reference_period": "2024-12",
+        "reference_value": 2350.0,
+        "reference_unit": "USD/t",
+        "review_frequency": "monthly",
+        "averaging_months": 1,
+        "trigger_pct": 5.0,
+        "pass_through_share": 1.0,
+        "annual_cap_pct": null,
+        "notice_days": 15,
+        "fx_rule": "The relative index change is calculated in the index currency; no currency conversion is applied to the adjustment."
+      },
+      "agreed_prices": [
+        {
+          "change_id": "CHG-20260926205252229788",
+          "material_id": "RM-AL-A380",
+          "price": 2.85,
+          "currency": "EUR",
+          "effective_from": {
+            "$date": "2026-10-01T00:00:00Z"
+          },
+          "reason": "Confirmed that October 2026 deliveries stay at the previous price of 2.85 EUR/kg."
+        },
+        {
+          "change_id": "CHG-20260926205252756938",
+          "material_id": "RM-AL-A380",
+          "price": 3.23,
+          "currency": "EUR",
+          "effective_from": {
+            "$date": "2026-11-01T00:00:00Z"
+          },
+          "reason": "Agreed to new price of 3.23 EUR/kg for deliveries from 1 November 2026, based on September index average."
+        }
+      ]
+    }
+  ]
+}

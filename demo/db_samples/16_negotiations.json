@@ -1,0 +1,54 @@
+{
+  "collection": "negotiations",
+  "description": "Negotiation history (seed of long-term memory)",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8314de9aac9639ebc2df3"
+      },
+      "date": {
+        "$date": "2025-06-03T00:00:00Z"
+      },
+      "party_id": "C-NORDWERK",
+      "party_type": "customer",
+      "contract_id": "CC-NW-2025-01",
+      "topic": "Copper cost increase on RD-120",
+      "ask": "+2.5% piece price",
+      "outcome": "Accepted +1.8% after 3 weeks",
+      "lessons": "Nordwerk needs LME evidence plus a cost breakdown per part before they engage",
+      "owner": "J. Weber",
+      "origin": "history",
+      "source": {
+        "system": "purchasing",
+        "file": "data/raw/purchasing/negotiation_log.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "Negotiation log",
+        "row": 2
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8314de9aac9639ebc2df4"
+      },
+      "date": {
+        "$date": "2025-11-14T00:00:00Z"
+      },
+      "party_id": "C-BRIGHTLINE",
+      "party_type": "customer",
+      "contract_id": "CC-BL-2024-07",
+      "topic": "PA66 increase on WH-EV1",
+      "ask": "+2.5% piece price",
+      "outcome": "Rejected: PA66 is excluded in section 3",
+      "lessons": "Brightline only reopens prices through the annual price review; file it before the notice deadline",
+      "owner": "J. Weber",
+      "origin": "history",
+      "source": {
+        "system": "purchasing",
+        "file": "data/raw/purchasing/negotiation_log.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "Negotiation log",
+        "row": 3
+      }
+    }
+  ]
+}

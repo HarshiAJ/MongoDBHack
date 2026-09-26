@@ -1,0 +1,42 @@
+{
+  "collection": "index_monthly",
+  "description": "Computed monthly index averages used by every price formula",
+  "documents": [
+    {
+      "_id": "ALU:2026-07",
+      "avg": 2384.4665217391303,
+      "min": 2303.64,
+      "max": 2425.24,
+      "observations": 23,
+      "unit": "USD/t",
+      "index": "ALU",
+      "month": {
+        "$date": "2026-07-01T00:00:00Z"
+      }
+    },
+    {
+      "_id": "ALU:2026-08",
+      "avg": 2520.6633333333334,
+      "min": 2418.9,
+      "max": 2670.81,
+      "observations": 21,
+      "unit": "USD/t",
+      "index": "ALU",
+      "month": {
+        "$date": "2026-08-01T00:00:00Z"
+      }
+    },
+    {
+      "_id": "ALU:2026-09",
+      "avg": 2666.8426315789475,
+      "min": 2581.87,
+      "max": 2743.11,
+      "observations": 19,
+      "unit": "USD/t",
+      "index": "ALU",
+      "month": {
+        "$date": "2026-09-01T00:00:00Z"
+      }
+    }
+  ]
+}

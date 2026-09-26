@@ -1,0 +1,36 @@
+{
+  "collection": "market_prices",
+  "description": "Time series collection: one index observation",
+  "documents": [
+    {
+      "ts": {
+        "$date": "2026-08-31T00:00:00Z"
+      },
+      "meta": {
+        "frequency": "daily",
+        "index": "ALU",
+        "source": "data/raw/market_intelligence/lme_metals_daily.csv",
+        "unit": "USD/t"
+      },
+      "_id": {
+        "$oid": "6ab8314ae9aac9639ebc2488"
+      },
+      "value": 2670.81
+    },
+    {
+      "ts": {
+        "$date": "2026-09-01T00:00:00Z"
+      },
+      "meta": {
+        "frequency": "daily",
+        "index": "ALU",
+        "source": "data/raw/market_intelligence/lme_metals_daily.csv",
+        "unit": "USD/t"
+      },
+      "_id": {
+        "$oid": "6ab8314ae9aac9639ebc2489"
+      },
+      "value": 2659.01
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "collection": "products",
+  "description": "Finished part with embedded BOM and exploded kg per material (computed pattern)",
+  "documents": [
+    {
+      "_id": "FG-WH-EV1",
+      "description": "EV high-voltage wiring harness",
+      "bom_version": 7,
+      "bom": [
+        {
+          "parent": "FG-WH-EV1",
+          "component": "RM-CU-ROD",
+          "qty": 3.8,
+          "uom": "KG",
+          "version": "v7",
+          "level": 1
+        },
+        {
+          "parent": "FG-WH-EV1",
+          "component": "RM-PA66-GF30",
+          "qty": 0.9,
+          "uom": "KG",
+          "version": "v7",
+          "level": 1
+        }
+      ],
+      "materials": [
+        {
+          "material_id": "RM-CU-ROD",
+          "kg_per_unit": 3.8,
+          "paths": [
+            "FG-WH-EV1 > RM-CU-ROD"
+          ]
+        },
+        {
+          "material_id": "RM-PA66-GF30",
+          "kg_per_unit": 0.9,
+          "paths": [
+            "FG-WH-EV1 > RM-PA66-GF30"
+          ]
+        }
+      ],
+      "source": {
+        "system": "bom",
+        "file": "data/raw/bom/bom_export_v7.xlsx",
+        "run_id": "ingest-20260926T205523-fd5bec",
+        "sheet": "BOM v7"
+      },
+      "cost": {
+        "conversion": {
+          "labour": 12.4,
+          "machine": 3.6,
+          "overhead": 4.2,
+          "logistics": 1.8
+        },
+        "conversion_total": 22.0,
+        "target_margin_pct": 10,
+        "owner": "Controlling",
+        "valid_from": {
+          "$date": "2026-01-01T00:00:00Z"
+        },
+        "source": {
+          "system": "excel_inputs",
+          "file": "data/raw/excel_inputs/product_cost_structure_2026.xlsx",
+          "run_id": "ingest-20260926T205523-fd5bec",
+          "sheet": "Standard cost 2026",
+          "row": 3
+        }
+      }
+    }
+  ]
+}

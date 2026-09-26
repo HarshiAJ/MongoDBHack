@@ -1,0 +1,49 @@
+{
+  "collection": "parties",
+  "description": "Vendor and customer (polymorphic collection)",
+  "documents": [
+    {
+      "_id": "C-BRIGHTLINE",
+      "type": "customer",
+      "name": "Brightline Motors Inc.",
+      "country": "US",
+      "currency": "EUR",
+      "sap_kunnr": "0000200102",
+      "aliases": [
+        "Brightline Motors",
+        "BRIGHTLINE MOTORS INC",
+        "Brightline"
+      ],
+      "sources": [
+        {
+          "system": "sap_bw",
+          "file": "data/raw/sap_bw/0CUSTOMER_master.csv",
+          "run_id": "ingest-20260926T205523-fd5bec",
+          "row": 3
+        },
+        {
+          "system": "documents",
+          "file": "data/raw/contracts/customer/CC-BL-2024-07_Brightline.pdf",
+          "run_id": "ingest-20260926T205523-fd5bec"
+        }
+      ]
+    },
+    {
+      "_id": "V-100101",
+      "type": "vendor",
+      "name": "AluCast Iberia S.L.",
+      "country": "ES",
+      "currency": "EUR",
+      "sap_lifnr": "0000100101",
+      "aliases": [],
+      "sources": [
+        {
+          "system": "sap_bw",
+          "file": "data/raw/sap_bw/0VENDOR_master.csv",
+          "run_id": "ingest-20260926T205523-fd5bec",
+          "row": 2
+        }
+      ]
+    }
+  ]
+}

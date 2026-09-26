@@ -1,0 +1,44 @@
+{
+  "collection": "contract_changes",
+  "description": "Accepted agreement applied to a contract",
+  "documents": [
+    {
+      "_id": "CHG-20260926205252229788",
+      "type": "vendor_price",
+      "contract_id": "VC-2025-014",
+      "material_id": "RM-AL-A380",
+      "product_id": null,
+      "price": 2.85,
+      "currency": "EUR",
+      "effective_from": "2026-10-01",
+      "year": null,
+      "reason": "Confirmed that October 2026 deliveries stay at the previous price of 2.85 EUR/kg.",
+      "party_id": "V-100101",
+      "case_id": "CASE-20260926-205246-8459",
+      "approved_by": "buyer",
+      "recorded_at": {
+        "$date": "2026-09-26T20:52:52.229Z"
+      },
+      "status": "accepted"
+    },
+    {
+      "_id": "CHG-20260926205252756938",
+      "type": "vendor_price",
+      "contract_id": "VC-2025-014",
+      "material_id": "RM-AL-A380",
+      "product_id": null,
+      "price": 3.23,
+      "currency": "EUR",
+      "effective_from": "2026-11-01",
+      "year": null,
+      "reason": "Agreed to new price of 3.23 EUR/kg for deliveries from 1 November 2026, based on September index average.",
+      "party_id": "V-100101",
+      "case_id": "CASE-20260926-205246-8459",
+      "approved_by": "buyer",
+      "recorded_at": {
+        "$date": "2026-09-26T20:52:52.757Z"
+      },
+      "status": "accepted"
+    }
+  ]
+}

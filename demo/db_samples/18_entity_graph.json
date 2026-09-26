@@ -1,0 +1,25 @@
+{
+  "collection": "entity_graph",
+  "description": "Graph node used by $graphLookup",
+  "documents": [
+    {
+      "_id": "RM-CU-ROD",
+      "type": "material",
+      "name": "Copper wire rod 8mm ETP",
+      "edges": [
+        {
+          "to": "VC-2025-018",
+          "rel": "bought_under"
+        },
+        {
+          "to": "FG-WH-EV1",
+          "rel": "used_in"
+        },
+        {
+          "to": "FG-RD-120",
+          "rel": "used_in"
+        }
+      ]
+    }
+  ]
+}

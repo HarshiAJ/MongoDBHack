@@ -1,0 +1,88 @@
+{
+  "doc_chunks": [
+    {
+      "name": "chunks_text",
+      "type": "search",
+      "definition": {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "content": {
+              "type": "string",
+              "analyzer": "lucene.english"
+            },
+            "heading": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "token"
+            },
+            "contract_id": {
+              "type": "token"
+            },
+            "party_ids": {
+              "type": "token"
+            },
+            "indices": {
+              "type": "token"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "chunks_vector",
+      "type": "vectorSearch",
+      "definition": {
+        "fields": [
+          {
+            "type": "autoEmbed",
+            "path": "content",
+            "model": "voyage-4",
+            "modality": "text"
+          },
+          {
+            "type": "filter",
+            "path": "kind"
+          },
+          {
+            "type": "filter",
+            "path": "contract_id"
+          },
+          {
+            "type": "filter",
+            "path": "party_ids"
+          },
+          {
+            "type": "filter",
+            "path": "indices"
+          }
+        ]
+      }
+    }
+  ],
+  "agent_memory": [
+    {
+      "name": "memory_vector",
+      "type": "vectorSearch",
+      "definition": {
+        "fields": [
+          {
+            "type": "autoEmbed",
+            "path": "text",
+            "model": "voyage-4",
+            "modality": "text"
+          },
+          {
+            "type": "filter",
+            "path": "party_id"
+          },
+          {
+            "type": "filter",
+            "path": "kind"
+          }
+        ]
+      }
+    }
+  ]
+}

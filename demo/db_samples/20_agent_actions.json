@@ -1,0 +1,58 @@
+{
+  "collection": "agent_actions",
+  "description": "Approved action: draft email ready to send, with clause references",
+  "documents": [
+    {
+      "_id": {
+        "$oid": "6ab8289a67e6d605728fe0be"
+      },
+      "case_id": "CASE-20260926-201743-f797",
+      "finding_id": 0,
+      "kind": "supplier_claim_check",
+      "action_type": "counter_notice",
+      "counterparty_id": "V-100101",
+      "contract_id": "VC-2025-014",
+      "channel": "email",
+      "subject": "Price Adjustment Notice for RM-AL-A380: Effective Date Correction per Section 4",
+      "message": "Dear Marta,\n\nWe acknowledge receipt of your price adjustment notice dated 22 September 2026 for RM-AL-A380. As per section 4 of contract VC-2025-014, supplier must notify buyer at least 15 days before the adjustment takes effect. Your notice was received 9 days before the proposed effective date (1 October 2026), which does not meet the contractual lead time. Therefore, the adjustment to 3.23 EUR/kg (per the formula) will apply from the next review period, not from 1 October 2026. Please confirm your acceptance of this correction by 1 October 2026.\n\nBest regards,\nVeltra Automotive Purchasing",
+      "rationale": "Section 4 of VC-2025-014 requires a 15-day written notice for price adjustments. The supplier's notice was received only 9 days before the effective date, so the adjustment can only apply from the next review period. The formula also gives 3.23 EUR/kg, not 3.38 EUR/kg.",
+      "clause_refs": [
+        "VC-2025-014_AluCast#4",
+        "2026-09-22_AluCast_price_notice#0"
+      ],
+      "value_eur": 58045.6,
+      "deadline": "2026-10-01",
+      "status": "ready_to_send",
+      "approved_by": "buyer",
+      "approved_at": {
+        "$date": "2026-09-26T20:18:34.166Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "6ab8289a67e6d605728fe0c0"
+      },
+      "case_id": "CASE-20260926-201743-f797",
+      "finding_id": 1,
+      "kind": "renewal",
+      "action_type": "invoke_meet_competition",
+      "counterparty_id": "V-100107",
+      "contract_id": "VC-2024-040",
+      "channel": "email",
+      "subject": "Renewal Offer for 2027: Competing Offer from Pacific Latex Sdn. Bhd.",
+      "message": "Dear Lim,\n\nThank you for your renewal offer of 2.45 USD/kg for 2027 under contract VC-2024-040. We have received a qualified offer from Pacific Latex Sdn. Bhd. at 2.05 USD/kg, valid until 20 October 2026. As per section 7 (Renewal), we are free to award the next period to another supplier. Please advise by 15 October 2026 if you are able to match or improve upon this offer; otherwise, we will proceed with alternative sourcing.\n\nBest regards,\nVeltra Automotive Purchasing",
+      "rationale": "Section 7 of VC-2024-040 allows the buyer to switch suppliers at renewal. A qualified alternative offer at 2.05 USD/kg is on the table, so we should request Keystone to match or improve their offer before the deadline.",
+      "clause_refs": [
+        "VC-2024-040_Keystone#7",
+        "2026-09-18_Keystone_renewal_offer#0"
+      ],
+      "value_eur": 24733.32,
+      "deadline": "2026-10-15",
+      "status": "ready_to_send",
+      "approved_by": "buyer",
+      "approved_at": {
+        "$date": "2026-09-26T20:18:34.952Z"
+      }
+    }
+  ]
+}
