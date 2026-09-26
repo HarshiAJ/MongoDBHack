@@ -345,6 +345,11 @@ def main(all_docs=False):
     contracts = build_contracts(db)
     build_notices(db)
     print(f"{cross_check_customer_prices(db)} SAP price conditions disagree with contract piece prices.")
+    from rmi import graph
+    from rmi.agent import memory
+    print(f"{graph.build(db)} graph nodes; ", end="")
+    memory.ensure_index(db)
+    print(f"{memory.sync_from_negotiations(db)} memories synced.")
     print(f"\n{len(contracts)} contracts assembled; "
           f"{sum(len(c['amendments']) for c in contracts.values())} amendments applied.")
 

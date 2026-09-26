@@ -114,6 +114,25 @@ response  interpret -> [buyer approval] -> apply -> replan -> report
 .venv/bin/python -m rmi.agent respond V-100101 data/demo/alucast_reply_2026-09-29.txt
 ```
 
+## MongoDB resources used
+
+| Resource | Where in this project |
+|---|---|
+| Atlas Hackathon Sandbox | All data, indexes, checkpoints and memory live in the sandbox cluster (`rmi` database) |
+| MongoDB Agent Skills | Installed via the MongoDB Claude plugin; schema-design and search-and-ai skills shaped the data model and indexes |
+| MongoDB MCP Server | Connected in Claude Code; used to look up the `autoEmbed` index syntax and inspect the live cluster |
+| Natural Language to MongoDB Queries | Chat tool `query_data` (`rmi/agent/chat.py`): the LLM writes read-only aggregation pipelines from questions, given collection and field descriptions |
+| Data modeling | Computed pattern (exploded BOM, monthly index averages), polymorphic `parties`/`contracts`, document versioning (`plans`, `terms_timeline`), `$jsonSchema` validation, time series `market_prices` |
+| Vector Search + Automated Embeddings | `chunks_vector` and `memory_vector` indexes use `autoEmbed` (voyage-4); no embedding pipeline in the code |
+| Atlas Search | `chunks_text` (English analyzer, fuzzy), fused with vector search via `$rankFusion` (`rmi/search.py`) |
+| Agent with memory and function calling | Chat assistant with 9 tools (`rmi/agent/chat.py`); long-term semantic memory of negotiations and case reports (`rmi/agent/memory.py`) |
+| Chat memory (LangChain + MongoDB) | Chat threads persisted with the MongoDB checkpointer, one thread per conversation |
+| LangGraph + MongoDB state | `MongoDBSaver` checkpoints; cases suspend at `interrupt()` for buyer approval and resume from any process (`rmi/agent/case.py`) |
+| State vs memory | Short-term: checkpoints per case/thread. Long-term: `agent_memory`, `negotiations`, `contract_changes` |
+| Build AI agents with MongoDB | Retrieval (clauses, memory, graph) alongside tools (price engine, re-forecast) and actions |
+| GraphRAG | `entity_graph` + `$graphLookup` (`rmi/graph.py`) for relationship-aware context: material -> products -> customer contracts -> customers, and vendor contracts |
+| Change streams | `rmi/agent/watcher.py` opens a case when prices or supplier notices change |
+
 ## Run the app
 
 ```bash

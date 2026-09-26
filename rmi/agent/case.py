@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 
 from rmi import llm
 from rmi.agent import changes
+from rmi.agent import memory as agent_memory
 from rmi.db import client, get_db
 from rmi.engine import AS_OF
 from rmi.engine.margins import MarginModel
@@ -108,10 +109,8 @@ def investigate(state: CaseState) -> CaseState:
         hits = hybrid_search(f["evidence_query"], k=3, contract_id=f["contract_id"]) if f["contract_id"] else []
         evidence[str(f["id"])] = [{"chunk": h["_id"], "heading": h["heading"], "text": h["text"][:600]} for h in hits]
         if f["party_id"] not in memory:
-            memory[f["party_id"]] = [
-                {"date": n["date"].date().isoformat(), "topic": n["topic"], "outcome": n["outcome"],
-                 "lessons": n.get("lessons")}
-                for n in db.negotiations.find({"party_id": f["party_id"]}).sort("date", -1).limit(3)]
+            # long-term semantic memory: what we learned about this counterparty, recalled by meaning
+            memory[f["party_id"]] = [m["text"] for m in agent_memory.recall(f["title"], f["party_id"], k=3)]
     return {"evidence": evidence, "memory": memory}
 
 
@@ -286,6 +285,8 @@ def report(state: CaseState) -> CaseState:
                    "accepted changes. Max 150 words."),
         ("human", json.dumps(facts, default=str))]).content
     _case_update(db, state["case_id"], status="done", report=text, forecast=state.get("forecast"))
+    agent_memory.remember(text, kind="case_report", ref=state["case_id"], db=db)
+    agent_memory.sync_from_negotiations(db)
     return {"summary": text}
 
 
